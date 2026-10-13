@@ -202,3 +202,18 @@ def create_service_app(
         )
 
     return app
+
+
+def serve(app_path: str, settings: ServiceSettings) -> None:
+    """Run a service with uvicorn, keeping our structured logging configuration."""
+    import uvicorn
+
+    uvicorn.run(
+        app_path,
+        host=settings.service_host,
+        port=settings.service_port,
+        log_config=None,
+        proxy_headers=True,
+        forwarded_allow_ips="*",
+        timeout_graceful_shutdown=20,
+    )

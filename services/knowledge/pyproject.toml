@@ -1,0 +1,20 @@
+[project]
+name = "lessongen-knowledge"
+version = "0.1.0"
+description = "Knowledge service: curated topic packs (ground truth), glossary and search."
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "lessongen-common[service,llm,text]",
+    "rank-bm25>=0.2.2",
+    "numpy>=2.1",
+]
+
+[tool.uv.sources]
+lessongen-common = { workspace = true }
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/knowledge_svc"]

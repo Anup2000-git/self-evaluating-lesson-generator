@@ -1,0 +1,149 @@
+# Topic pack: the curated, versioned ground truth for "Introduction to RAG".
+# Reviewed facts only. The writer researches from these docs; the fact-checker verifies
+# every claim against them; the rubric's coverage checks read key_points from here.
+id: rag
+title: Introduction to RAG (Retrieval-Augmented Generation)
+version: "2026.10.1"
+aliases:
+  - rag
+  - introduction to rag
+  - intro to rag
+  - rag basics
+  - retrieval-augmented generation
+  - retrieval augmented generation
+  - rag retrieval-augmented generation
+  - introduction to retrieval-augmented generation
+summary: >-
+  How an AI system first finds relevant information in a knowledge base and then uses it
+  to write a grounded answer.
+
+key_points:
+  what: >-
+    RAG (Retrieval-Augmented Generation) is a method where, before a large language model
+    answers, the system retrieves relevant pieces of information from an outside knowledge
+    source, adds them to the prompt together with the question, and the model generates its
+    answer using that information.
+  why:
+    - "Knowledge cutoff: an LLM only knows what was in its training data up to a certain date, so on its own it does not know recent or updated information."
+    - "Hallucination: an LLM can state false things that sound correct; giving it real, relevant text to answer from reduces this."
+    - "Private or specific data: an LLM never saw an organisation's own documents (company policies, college notices, product manuals); RAG lets it use them without retraining."
+    - "Trust: answers can show their sources, so people can check them."
+    - "Cost and speed of updates: updating the documents in a knowledge base is much cheaper and faster than retraining or fine-tuning a model."
+  how_steps:
+    - "Prepare the knowledge: collect the documents and split them into small chunks."
+    - "Index: turn each chunk into an embedding (and/or a keyword index) and store it, for example in a vector database."
+    - "Retrieve: when a question arrives, find the chunks most relevant to the question (for example with similarity search)."
+    - "Augment: add the retrieved chunks to the prompt together with the question and instructions."
+    - "Generate: the LLM writes the answer using the retrieved chunks, ideally pointing to its sources."
+  misconceptions:
+    - "RAG retrains or permanently changes the model - false: the retrieved information is used only for that one answer; the model's weights do not change."
+    - "RAG always gives correct answers - false: if the wrong chunks are retrieved or the documents are wrong, the answer can still be wrong."
+    - "RAG is the same as fine-tuning - false: fine-tuning changes the model itself; RAG only adds information to the prompt."
+    - "Retrieving more text is always better - false: irrelevant text can confuse the model and the context window is limited."
+  limitations:
+    - "Answer quality depends on retrieval quality: if the search brings the wrong chunk, the answer can be wrong."
+    - "The knowledge base must be kept up to date, otherwise answers use old information."
+    - "The context window limits how much retrieved text can be added to the prompt."
+    - "The extra search step adds time and cost."
+    - "The model can still hallucinate or ignore the retrieved text."
+
+example_must_show:
+  - the exact question the user asks
+  - the specific piece(s) of information that are retrieved
+  - how the retrieved information is added to the prompt
+  - the final answer that uses the retrieved information
+
+# Watch-list for rubric check JAR-1: any of these used in the lesson body needs a glossary
+# entry. Matching is stem-based and longest-first ("vector database" is not also "vector").
+jargon:
+  - term: retrieval-augmented generation
+    aliases: [RAG]
+  - term: large language model
+    aliases: [LLM, language model]
+  - term: artificial intelligence
+    aliases: [AI]
+  - term: retrieval
+  - term: augmentation
+    aliases: [augmented]
+  - term: generation
+  - term: prompt
+  - term: knowledge base
+  - term: knowledge cutoff
+    aliases: [knowledge cut-off, training cutoff]
+  - term: hallucination
+  - term: training data
+  - term: chunk
+    aliases: [chunking]
+  - term: embedding
+  - term: vector
+  - term: vector database
+    aliases: [vector store, vector DB]
+  - term: similarity search
+    aliases: [semantic search, vector search]
+  - term: keyword search
+  - term: fine-tuning
+    aliases: [fine-tune, finetuning]
+  - term: context window
+    aliases: [context length]
+  - term: token
+  - term: retriever
+  - term: index
+    aliases: [indexing]
+  - term: query
+  - term: model weights
+    aliases: [weights, parameters]
+  - term: cosine similarity
+  - term: top-k
+
+acronyms:
+  RAG: Retrieval-Augmented Generation
+  LLM: Large Language Model
+  AI: Artificial Intelligence
+  API: Application Programming Interface
+  NLP: Natural Language Processing
+  GPT: Generative Pre-trained Transformer
+  ML: Machine Learning
+  FAQ: Frequently Asked Questions
+  DB: Database
+  ANN: Approximate Nearest Neighbour
+  HNSW: Hierarchical Navigable Small World
+  BM25: Best Matching 25
+
+# Acronyms every Indian 12th-grade graduate already knows; never require expansion.
+familiar_acronyms: [PDF, TV, ATM, SMS, OK, ID, PIN, UPI, USB, AM, PM, IT, CBSE, IIT, PhD, Rs, URL, WWW]
+
+allowed_vocabulary: [chatbot, ChatGPT, notice, semester, database, online, offline]
+
+# Held-out assessment for rubric check COV-5. Never shown to the writer.
+learner_questions:
+  - id: Q1
+    question: What does RAG stand for?
+    reference_answer: Retrieval-Augmented Generation.
+  - id: Q2
+    question: Why might an LLM give an outdated or wrong answer about something that happened recently?
+    reference_answer: >-
+      Because it only knows information from its training data up to its knowledge cutoff
+      date. It learned nothing after that, so it may guess or give old information.
+  - id: Q3
+    question: In RAG, what happens before the LLM writes its answer?
+    reference_answer: >-
+      The system retrieves (searches for and finds) relevant pieces of information from a
+      knowledge base and adds them to the prompt together with the question.
+  - id: Q4
+    question: >-
+      Put these steps in the right order - generate the answer; add the found information to
+      the prompt; find relevant information.
+    reference_answer: >-
+      Find relevant information (retrieve), then add it to the prompt (augment), then
+      generate the answer.
+  - id: Q5
+    question: Does RAG permanently change or retrain the LLM? Explain.
+    reference_answer: >-
+      No. RAG only gives the LLM extra information for that particular question; the model
+      itself is not changed (changing the model would be fine-tuning).
+  - id: Q6
+    question: Give one real-life example where RAG is useful.
+    reference_answer: >-
+      Any valid situation where an AI answers using specific documents it was not trained on,
+      for example a college chatbot answering from college notices, or a company help-desk bot
+      answering from company policies.

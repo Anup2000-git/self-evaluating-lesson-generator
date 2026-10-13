@@ -1,0 +1,124 @@
+# Approved beginner definitions with helper-language meanings (reviewed).
+# The writer agent looks terms up here (tool: lookup_glossary) so definitions and Hindi
+# hints are consistent and correct across lessons.
+- term: Artificial Intelligence
+  aliases: [AI]
+  simple_meaning: Computer programs that can do tasks that normally need human thinking, like understanding language.
+  translations: {hindi: "कृत्रिम बुद्धि (आर्टिफ़िशियल इंटेलिजेंस)"}
+
+- term: Retrieval-Augmented Generation
+  aliases: [RAG]
+  simple_meaning: A method where the system first finds useful information and then the AI uses it to write an answer.
+  translations: {hindi: "जानकारी खोजकर, उसे जोड़कर जवाब बनाने का तरीका"}
+
+- term: Large Language Model
+  aliases: [LLM, language model]
+  simple_meaning: A computer program that has learned from a huge amount of text and can understand and write language.
+  translations: {hindi: "बड़ा भाषा मॉडल"}
+
+- term: Retrieval
+  aliases: [retrieve]
+  simple_meaning: Finding useful information and bringing it back.
+  translations: {hindi: "खोजकर लाना"}
+
+- term: Augmentation
+  aliases: [augmented, augment]
+  simple_meaning: Making something better by adding something extra to it.
+  translations: {hindi: "कुछ जोड़कर बढ़ाना"}
+
+- term: Generation
+  aliases: [generate]
+  simple_meaning: Creating something new, like writing an answer.
+  translations: {hindi: "बनाना, रचना"}
+
+- term: Prompt
+  simple_meaning: The message, with a question and instructions, that we give to an AI.
+  translations: {hindi: "निर्देश (AI को दिया गया सवाल और निर्देश)"}
+
+- term: Knowledge base
+  simple_meaning: A collection of documents that a system can search.
+  translations: {hindi: "जानकारी का भंडार"}
+
+- term: Knowledge cutoff
+  aliases: [knowledge cut-off]
+  simple_meaning: The last date of the information an LLM learned from.
+  translations: {hindi: "जानकारी की आखिरी तारीख"}
+
+- term: Hallucination
+  simple_meaning: When an AI gives a false answer that sounds correct.
+  translations: {hindi: "मनगढ़ंत जवाब"}
+
+- term: Training data
+  simple_meaning: The text an AI model learned from.
+  translations: {hindi: "प्रशिक्षण डेटा (जिससे मॉडल ने सीखा)"}
+
+- term: Chunk
+  aliases: [chunking]
+  simple_meaning: A small piece of a long document.
+  translations: {hindi: "टुकड़ा"}
+
+- term: Embedding
+  simple_meaning: A list of numbers that captures the meaning of a piece of text.
+  translations: {hindi: "अर्थ बताने वाली संख्याओं की सूची"}
+
+- term: Vector
+  simple_meaning: A list of numbers.
+  translations: {hindi: "संख्याओं की सूची"}
+
+- term: Vector database
+  aliases: [vector store]
+  simple_meaning: A store that keeps embeddings and quickly finds the ones most similar to a question.
+  translations: {hindi: "संख्याओं की सूचियों का डेटाबेस"}
+
+- term: Similarity search
+  aliases: [semantic search, vector search]
+  simple_meaning: Finding the pieces of text whose meaning is closest to a question.
+  translations: {hindi: "मिलती-जुलती चीज़ खोजना"}
+
+- term: Keyword search
+  simple_meaning: Finding text that contains the same words as the question.
+  translations: {hindi: "शब्दों से खोज"}
+
+- term: Fine-tuning
+  aliases: [fine-tune]
+  simple_meaning: Training a model again on new examples so that the model itself changes.
+  translations: {hindi: "मॉडल को दोबारा सिखाना"}
+
+- term: Context window
+  simple_meaning: The amount of text an LLM can read at one time.
+  translations: {hindi: "एक बार में पढ़ने की सीमा"}
+
+- term: Token
+  simple_meaning: A small piece of a word that an LLM reads and writes.
+  translations: {hindi: "शब्द का छोटा टुकड़ा"}
+
+- term: Retriever
+  simple_meaning: The part of a RAG system that searches and brings back the most useful chunks.
+  translations: {hindi: "खोजने वाला हिस्सा"}
+
+- term: Index
+  aliases: [indexing]
+  simple_meaning: An organised list that makes searching fast, like the index at the back of a book.
+  translations: {hindi: "अनुक्रमणिका (खोजने के लिए सूची)"}
+
+- term: Query
+  simple_meaning: A question or search request given to a system.
+  translations: {hindi: "सवाल या खोज"}
+
+- term: Model weights
+  aliases: [weights, parameters]
+  simple_meaning: The numbers inside a model that store what it learned.
+  translations: {hindi: "मॉडल के अंदर सीखी हुई संख्याएँ"}
+
+- term: Cosine similarity
+  simple_meaning: A way to measure how close two embeddings are in meaning.
+  translations: {hindi: "दो अर्थों की नज़दीकी नापने का तरीका"}
+
+- term: Top-k
+  simple_meaning: The k best-matching chunks that the retriever returns, for example the top 3.
+  translations: {hindi: "सबसे अच्छे k नतीजे"}
+
+- term: Source
+  aliases: [citation]
+  simple_meaning: The place where a piece of information comes from.
+  translations: {hindi: "स्रोत"}

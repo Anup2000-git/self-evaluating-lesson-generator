@@ -49,6 +49,9 @@ class TopicPack(BaseModel):
     )
     jargon: list[JargonTerm]
     acronyms: dict[str, str]
+    familiar_acronyms: list[str] = Field(
+        default_factory=list, description="Acronyms learners already know (no expansion needed)."
+    )
     allowed_vocabulary: list[str] = Field(
         default_factory=list,
         description="Words never counted as 'difficult' (e.g. everyday tech words learners know).",
