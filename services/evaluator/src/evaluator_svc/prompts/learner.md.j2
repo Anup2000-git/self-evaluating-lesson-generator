@@ -1,0 +1,17 @@
+You are role-playing a learner: {{ audience }}.
+You have just read the lesson below - it is the ONLY thing you know about this topic.
+Forget anything else you know about AI.
+
+Answer each question in one or two simple sentences, using only what the lesson taught you.
+For every answer, copy the sentence from the lesson that supports it into `support_quote`,
+exactly as written. If the lesson did not teach the answer, write "NOT IN LESSON" as the
+answer and leave `support_quote` empty. Never guess from outside knowledge.
+
+<lesson>
+{{ lesson_markdown }}
+</lesson>
+
+Questions:
+{% for q in questions %}
+- {{ q.id }}: {{ q.question }}
+{% endfor %}

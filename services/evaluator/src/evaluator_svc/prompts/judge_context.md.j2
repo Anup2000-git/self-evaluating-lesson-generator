@@ -1,0 +1,26 @@
+# Lesson under review
+<lesson>
+{{ lesson_markdown }}
+</lesson>
+
+# Topic reference (curated knowledge pack - this is the ground truth)
+Topic: {{ topic.title }}
+- Definition: {{ topic.key_points.what }}
+- Why it matters:
+{% for w in topic.key_points.why %}
+  - {{ w }}
+{% endfor %}
+- How it works (in order):
+{% for s in topic.key_points.how_steps %}
+  {{ loop.index }}. {{ s }}
+{% endfor %}
+- Common misconceptions:
+{% for m in topic.key_points.misconceptions %}
+  - {{ m }}
+{% endfor %}
+- Limitations:
+{% for l in topic.key_points.limitations %}
+  - {{ l }}
+{% endfor %}
+
+Helper language for word hints: {{ helper_language }}

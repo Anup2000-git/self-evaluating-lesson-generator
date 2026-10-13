@@ -226,6 +226,11 @@ def sample_lesson() -> Lesson:
                 helper_meaning="अर्थ बताने वाली संख्याएँ",
             ),
             GlossaryEntry(
+                term="Vector",
+                simple_meaning="A list of numbers.",
+                helper_meaning="संख्याओं की सूची",
+            ),
+            GlossaryEntry(
                 term="Vector database",
                 simple_meaning="A store that keeps embeddings and quickly finds similar ones.",
                 helper_meaning="संख्याओं की सूचियों का डेटाबेस",

@@ -47,4 +47,9 @@ known-first-party = [
 addopts = "-q --import-mode=importlib"
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
-testpaths = ["libs/common/tests", "services/knowledge/tests", "services/memory/tests"]
+testpaths = [
+    "libs/common/tests",
+    "services/knowledge/tests",
+    "services/memory/tests",
+    "services/evaluator/tests",
+]

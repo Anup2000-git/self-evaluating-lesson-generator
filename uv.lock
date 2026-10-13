@@ -5,6 +5,7 @@ requires-python = "==3.13.*"
 [manifest]
 members = [
     "lessongen-common",
+    "lessongen-evaluator",
     "lessongen-knowledge",
     "lessongen-memory",
     "lessongen-workspace",
@@ -616,6 +617,17 @@ requires-dist = [
     { name = "wordfreq", marker = "extra == 'text'", specifier = ">=3.1" },
 ]
 provides-extras = ["service", "llm", "text"]
+
+[[package]]
+name = "lessongen-evaluator"
+version = "0.1.0"
+source = { editable = "services/evaluator" }
+dependencies = [
+    { name = "lessongen-common", extra = ["llm", "service", "text"] },
+]
+
+[package.metadata]
+requires-dist = [{ name = "lessongen-common", extras = ["service", "llm", "text"], editable = "libs/common" }]
 
 [[package]]
 name = "lessongen-knowledge"

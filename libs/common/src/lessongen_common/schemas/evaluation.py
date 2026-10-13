@@ -57,6 +57,10 @@ class EvaluationReport(BaseModel):
     passed: bool
     results: list[CheckResult]
     failed_check_ids: list[str]
+    error_check_ids: list[str] = Field(
+        default_factory=list,
+        description="Checks that could not be evaluated (counted as FAIL for safety).",
+    )
     summary: str
     usage: Usage = Field(default_factory=Usage)
     duration_ms: int = 0
@@ -85,6 +89,7 @@ class EvaluationReport(BaseModel):
             passed=not failed,
             results=ordered,
             failed_check_ids=failed,
+            error_check_ids=[r.check_id for r in ordered if r.details.get("error")],
             summary=summary,
             usage=usage,
             duration_ms=duration_ms,

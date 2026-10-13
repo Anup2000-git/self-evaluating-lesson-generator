@@ -1,0 +1,16 @@
+[project]
+name = "lessongen-evaluator"
+version = "0.1.0"
+description = "Evaluator service: hard pass/fail rubric engine (deterministic checks, LLM judges, ReAct fact-checker, simulated learner) and fault injection."
+requires-python = ">=3.13,<3.14"
+dependencies = ["lessongen-common[service,llm,text]"]
+
+[tool.uv.sources]
+lessongen-common = { workspace = true }
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/evaluator_svc"]

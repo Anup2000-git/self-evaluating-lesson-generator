@@ -1,0 +1,25 @@
+# Checkpoint {{ check_id }} - {{ title }}
+Question: {{ judge.question }}
+
+PASS only if ALL of these are true:
+{% for c in judge.pass_criteria %}
+- {{ c }}
+{% endfor %}
+
+FAIL if ANY of these is true:
+{% for c in judge.fail_criteria %}
+- {{ c }}
+{% endfor %}
+{% if judge.notes %}
+
+Clarifications approved by reviewers:
+{% for n in judge.notes %}
+- {{ n }}
+{% endfor %}
+{% endif %}
+{% if retry_note %}
+
+Important: {{ retry_note }}
+{% endif %}
+
+Return JSON with: evidence (exact quotes), reasoning, verdict (PASS or FAIL), fix_instruction.
