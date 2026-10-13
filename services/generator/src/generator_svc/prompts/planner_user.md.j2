@@ -1,0 +1,45 @@
+# Topic: {{ topic.title }}
+
+## Key points the lesson must teach (ground truth)
+- What it is: {{ topic.key_points.what }}
+- Why it matters:
+{% for w in topic.key_points.why %}
+  - {{ w }}
+{% endfor %}
+- How it works, in order:
+{% for s in topic.key_points.how_steps %}
+  {{ loop.index }}. {{ s }}
+{% endfor %}
+- Misconceptions to correct:
+{% for m in topic.key_points.misconceptions %}
+  - {{ m }}
+{% endfor %}
+- Limitations:
+{% for l in topic.key_points.limitations %}
+  - {{ l }}
+{% endfor %}
+- A worked example must show: {{ topic.example_must_show | join("; ") }}
+
+## Knowledge notes (curated, with source ids)
+{% for hit in notes %}
+[{{ hit.chunk.id }}] {{ hit.chunk.heading }}: {{ hit.chunk.text }}
+
+{% endfor %}
+## Approved glossary terms
+{{ glossary_terms | join(", ") }}
+{% if guidelines %}
+
+## Lessons learned from previous runs (apply them to the plan)
+{% for g in guidelines %}
+- {{ g.text }}
+{% endfor %}
+{% endif %}
+{% if focus %}
+
+## Quality checks that often failed before - plan to avoid them
+{% for f in focus %}
+- {{ f }}
+{% endfor %}
+{% endif %}
+
+Return the lesson plan as JSON.

@@ -56,8 +56,12 @@ class FakeKnowledge:
         self.pack = pack
         self.queries: list[str] = []
 
-    async def topic(self, topic_id: str) -> TopicPack:
-        return self.pack
+    async def topic(self, topic_id: str, *, include_assessment: bool = False) -> TopicPack:
+        return (
+            self.pack
+            if include_assessment
+            else self.pack.model_copy(update={"learner_questions": []})
+        )
 
     async def search(self, topic_id: str, query: str, k: int = 4) -> SearchResponse:
         self.queries.append(query)

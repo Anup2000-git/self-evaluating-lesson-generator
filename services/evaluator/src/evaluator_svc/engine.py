@@ -197,7 +197,8 @@ class EvaluationEngine:
         started = time.perf_counter()
         with usage_scope() as usage:
             rubric = await self.rubrics.get(request.rubric_version)
-            topic = await self.knowledge.topic(request.topic_id)
+            # The evaluator (only) may see the held-out learner questions.
+            topic = await self.knowledge.topic(request.topic_id, include_assessment=True)
             ctx = EvalContext(
                 lesson=request.lesson,
                 topic=topic,

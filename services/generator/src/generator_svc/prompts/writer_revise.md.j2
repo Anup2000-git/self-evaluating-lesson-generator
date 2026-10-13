@@ -1,0 +1,32 @@
+A strict reviewer rejected the lesson below.
+{% if strategy == "patch" %}
+Revise it: change only what is needed to fix the failed checks and keep everything that passed.
+{% else %}
+Too much failed for small edits. Write a fresh lesson that follows the plan and avoids every
+problem listed below.
+{% endif %}
+
+## Failed checks - you must fix all of them
+{% for f in failed %}
+### {{ f.check_id }} - {{ f.title }}
+Why it failed: {{ f.reasoning }}
+{% if f.evidence %}
+Evidence from the lesson: {% for e in f.evidence %}"{{ e }}" {% endfor %}
+
+{% endif %}
+Fix: {{ f.fix_instruction or "Fix the problem described above." }}
+
+{% endfor %}
+## Checks that passed - they must still pass after your changes
+{{ passed | join(", ") }}
+
+## Current lesson (JSON)
+{{ lesson_json }}
+{% if plan_json %}
+
+## Lesson plan
+{{ plan_json }}
+{% endif %}
+
+When you are done, call `submit_revision` with the full revised lesson and one revision note
+for EVERY failed check id above, saying exactly what you changed and where.

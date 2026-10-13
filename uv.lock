@@ -6,6 +6,7 @@ requires-python = "==3.13.*"
 members = [
     "lessongen-common",
     "lessongen-evaluator",
+    "lessongen-generator",
     "lessongen-knowledge",
     "lessongen-memory",
     "lessongen-workspace",
@@ -622,6 +623,17 @@ provides-extras = ["service", "llm", "text"]
 name = "lessongen-evaluator"
 version = "0.1.0"
 source = { editable = "services/evaluator" }
+dependencies = [
+    { name = "lessongen-common", extra = ["llm", "service", "text"] },
+]
+
+[package.metadata]
+requires-dist = [{ name = "lessongen-common", extras = ["service", "llm", "text"], editable = "libs/common" }]
+
+[[package]]
+name = "lessongen-generator"
+version = "0.1.0"
+source = { editable = "services/generator" }
 dependencies = [
     { name = "lessongen-common", extra = ["llm", "service", "text"] },
 ]

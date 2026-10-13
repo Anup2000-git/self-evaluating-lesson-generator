@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 from fastapi import APIRouter, FastAPI, Request
 
 from evaluator_svc import __version__
-from evaluator_svc.clients import KnowledgeClient, RubricProvider
+from evaluator_svc.clients import KnowledgeClient, MemoryClient, RubricProvider
 from evaluator_svc.engine import EvaluationEngine
 from evaluator_svc.faults import (
     FaultApplied,
@@ -69,7 +69,7 @@ def create_app(
         app.state.engine = engine or EvaluationEngine(
             provider,
             KnowledgeClient(knowledge_http),
-            RubricProvider(memory_http, settings.rubric_cache_seconds),
+            RubricProvider(MemoryClient(memory_http), settings.rubric_cache_seconds),
             settings,
         )
         app.state.http = (knowledge_http, memory_http)

@@ -1,0 +1,16 @@
+Write the lesson now.
+
+## Lesson plan
+{{ plan_json }}
+
+## Topic key points (ground truth)
+- What it is: {{ topic.key_points.what }}
+- How it works, in order:
+{% for s in topic.key_points.how_steps %}
+  {{ loop.index }}. {{ s }}
+{% endfor %}
+
+## Approved glossary terms (use lookup_glossary for their meanings and {{ helper_language }} hints)
+{{ glossary_terms | join(", ") }}
+
+Research only what you still need, then call `submit_lesson` with the complete lesson.
