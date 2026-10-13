@@ -25,6 +25,8 @@ class ServiceSettings(BaseSettings):
     cors_origins: list[str] = Field(default_factory=list)
 
     redis_url: str = "redis://localhost:6379/0"
+    # Must exceed the longest blocking stream read (SSE tails block for up to 10 s).
+    redis_socket_timeout_seconds: float = 30.0
     events_enabled: bool = True
     event_stream_maxlen: int = 5000
     event_stream_ttl_days: int = 30

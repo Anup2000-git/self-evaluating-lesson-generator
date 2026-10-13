@@ -53,4 +53,5 @@ testpaths = [
     "services/memory/tests",
     "services/evaluator/tests",
     "services/generator/tests",
+    "services/orchestrator/tests",
 ]

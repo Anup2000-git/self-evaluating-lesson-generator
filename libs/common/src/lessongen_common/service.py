@@ -95,15 +95,22 @@ def create_service_app(
     lifespan: Callable[[FastAPI], Any] | None = None,
     readiness_checks: dict[str, ReadinessCheck] | None = None,
     use_redis: bool = True,
+    redis_client: Redis | None = None,
 ) -> FastAPI:
     configure_logging(name, settings.log_level, settings.log_json)
     checks: dict[str, ReadinessCheck] = dict(readiness_checks or {})
 
     @asynccontextmanager
     async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
-        redis: Redis | None = None
-        if use_redis and settings.events_enabled:
-            redis = Redis.from_url(settings.redis_url, socket_timeout=5, socket_connect_timeout=3)
+        redis: Redis | None = redis_client
+        if redis is None and use_redis and settings.events_enabled:
+            redis = Redis.from_url(
+                settings.redis_url,
+                socket_timeout=settings.redis_socket_timeout_seconds,
+                socket_connect_timeout=3,
+                health_check_interval=30,
+            )
+        if redis is not None:
             checks.setdefault("redis", redis.ping)
         app.state.redis = redis
         configure_event_bus(
@@ -123,7 +130,7 @@ def create_service_app(
                 yield
         finally:
             configure_event_bus(None)
-            if redis is not None:
+            if redis is not None and redis_client is None:
                 await redis.aclose()
             log.info("service_stopped")
 
