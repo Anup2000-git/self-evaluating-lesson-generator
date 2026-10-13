@@ -1,0 +1,35 @@
+Topic: {{ topic_id }}
+
+## Existing active guidelines
+{% if guidelines %}
+{% for g in guidelines %}
+- [{{ g.id }}] (checks: {{ g.check_ids | join(", ") }}; applied {{ g.times_applied }}, helped {{ g.times_helped }}, missed {{ g.times_missed }}) {{ g.text }}
+{% endfor %}
+{% else %}
+(none yet)
+{% endif %}
+
+## What the quality checks rejected in this run
+{% if episodes %}
+{% for e in episodes %}
+- Attempt {{ e.attempt }} failed {{ e.check_id }} ({{ e.title }}).
+  Why: {{ e.reasoning }}
+  {% if e.evidence %}Evidence: "{{ e.evidence }}"{% endif %}
+
+  {% if e.fixed_by %}Fixed in a later attempt by: {{ e.fixed_by }}{% else %}Not fixed in this run.{% endif %}
+
+{% endfor %}
+{% else %}
+(no failures in this run)
+{% endif %}
+
+## Human feedback not yet processed
+{% if comments %}
+{% for c in comments %}
+- (rating: {{ c.rating or "none" }}) "{{ c.comment }}"
+{% endfor %}
+{% else %}
+(none)
+{% endif %}
+
+Return the guideline changes as JSON.

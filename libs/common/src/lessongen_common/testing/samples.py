@@ -6,6 +6,9 @@ tests, and the default lesson in the Evaluator Lab before any run has shipped.
 
 from __future__ import annotations
 
+from collections.abc import Iterable
+
+from lessongen_common.schemas.evaluation import CheckResult, EvaluationReport, Verdict
 from lessongen_common.schemas.lesson import (
     GlossaryEntry,
     Lesson,
@@ -15,6 +18,7 @@ from lessongen_common.schemas.lesson import (
     Section,
     SectionKind,
 )
+from lessongen_common.schemas.usage import Usage
 
 _HOOK = """\
 Riya studies at a college in Patna. One evening she asks an AI (Artificial Intelligence) chatbot a simple question: "What is the last date to pay our exam fee?"
@@ -291,6 +295,35 @@ def sample_lesson() -> Lesson:
                 explanation="Retrieval is finding the right information, just like finding the right page in your textbook.",
             ),
         ],
+    )
+
+
+def sample_report(failed: Iterable[str] = (), *, rubric_version: int = 1) -> EvaluationReport:
+    """An evaluation report over the seed rubric where exactly ``failed`` checks fail."""
+    from lessongen_common.rubric import load_seed_rubric
+
+    rubric = load_seed_rubric()
+    failed_set = set(failed)
+    results = [
+        CheckResult(
+            check_id=c.id,
+            dimension=c.dimension,
+            title=c.title,
+            method=c.method,
+            severity=c.severity,
+            verdict=Verdict.FAIL if c.id in failed_set else Verdict.PASS,
+            reasoning=f"{c.id} {'failed' if c.id in failed_set else 'passed'} in a test.",
+            evidence=["sample evidence"] if c.id in failed_set else [],
+            fix_instruction=f"Fix {c.id}." if c.id in failed_set else "",
+        )
+        for c in rubric.checks
+    ]
+    return EvaluationReport.build(
+        rubric_version=rubric_version,
+        results=results,
+        usage=Usage(),
+        duration_ms=1,
+        check_order=[c.id for c in rubric.checks],
     )
 
 
