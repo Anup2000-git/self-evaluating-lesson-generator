@@ -1,0 +1,7 @@
+# Normalise line endings so scripts and configs copied into Linux containers work.
+* text=auto eol=lf
+*.ps1 text eol=crlf
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff2 binary

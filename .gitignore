@@ -218,3 +218,15 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# --- Project additions ---
+# Frontend
+node_modules/
+web/dist/
+*.tsbuildinfo
+.vite/
+coverage/
+# Local runtime data / scratch outputs
+/data/
+/outputs/
+.DS_Store

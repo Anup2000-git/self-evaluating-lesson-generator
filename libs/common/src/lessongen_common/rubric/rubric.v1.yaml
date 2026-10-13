@@ -1,0 +1,332 @@
+# Rubric v1 - hard pass/fail checkpoints for beginner lessons.
+#
+# Ship policy: ALL checks must pass. There is no partial credit and no weighting;
+# severity is only used to order fixes and to pick the best attempt if retries run out.
+#
+# Judge texts may use placeholders filled from the topic pack at evaluation time:
+#   {topic_title} {what} {why_points} {how_steps} {misconceptions} {limitations}
+#   {example_must_show} {jargon_examples} {helper_language} {audience}
+#
+# Methods:
+#   deterministic - code (impl + params), no LLM, fully reproducible
+#   llm_judge     - one focused yes/no question per call, verbatim evidence required
+#   fact_check    - ReAct agent verifies every claim against the knowledge base
+#   learner       - simulated beginner answers held-out questions from the lesson only
+version: 1
+name: Beginner lesson rubric
+ship_policy: all_must_pass
+description: >-
+  23 binary checkpoints across the six quality dimensions (accuracy, language, examples,
+  jargon, coverage, flow) for a learner who finished 12th grade in India, studied in a
+  non-English-medium school and has limited English vocabulary.
+
+checks:
+  # ------------------------------------------------------------------ accuracy
+  - id: ACC-1
+    dimension: accuracy
+    title: No false statements
+    method: fact_check
+    severity: critical
+    impl: no_contradictions
+    pass_condition: No technical claim in the lesson is contradicted by the knowledge base.
+
+  - id: ACC-2
+    dimension: accuracy
+    title: No invented specifics
+    method: fact_check
+    severity: critical
+    impl: specifics_supported
+    pass_condition: >-
+      Every specific fact (number, date, name, organisation, statistic) is supported by the
+      knowledge base.
+
+  - id: ACC-3
+    dimension: accuracy
+    title: Helper-language hints are correct
+    method: llm_judge
+    severity: major
+    pass_condition: Every {helper_language} hint correctly conveys the meaning of its English term.
+    judge:
+      question: >-
+        Is every {helper_language} hint in this lesson (inline hints and the glossary) a correct,
+        natural explanation of the English term it belongs to?
+      pass_criteria:
+        - Each {helper_language} word or phrase correctly conveys the meaning of the English term in this lesson's context.
+        - Hints are written in the {helper_language} script and use everyday words a school graduate understands.
+      fail_criteria:
+        - Any hint has a wrong or misleading meaning (for example "retrieval" explained with a word meaning "electricity").
+        - Any hint is in a different language or script than {helper_language}.
+        - Any hint uses a rare, bookish word where a common everyday word exists, so the learner would not understand it.
+
+  # ------------------------------------------------------------------ language
+  - id: LANG-1
+    dimension: language
+    title: Easy reading level
+    method: deterministic
+    severity: major
+    impl: readability_grade
+    params: {max_grade: 8.0}
+    pass_condition: Flesch-Kincaid grade of the English text is at most 8.0.
+
+  - id: LANG-2
+    dimension: language
+    title: Short sentences
+    method: deterministic
+    severity: major
+    impl: sentence_length
+    params: {max_avg_words: 15, max_words: 28}
+    pass_condition: Average sentence is at most 15 words and no sentence is longer than 28 words.
+
+  - id: LANG-3
+    dimension: language
+    title: Everyday vocabulary
+    method: deterministic
+    severity: major
+    impl: difficult_vocabulary
+    params: {max_distinct: 10, zipf_threshold: 3.8}
+    pass_condition: >-
+      At most 10 distinct difficult words (rarer than Zipf 3.8 in English, or on the
+      academic-words list) outside the glossary, the topic's jargon list and words familiar
+      to Indian students.
+
+  - id: LANG-4
+    dimension: language
+    title: No idioms or assumed knowledge
+    method: llm_judge
+    severity: major
+    pass_condition: No idioms, culture-bound references or assumed prior knowledge.
+    judge:
+      question: >-
+        Is the lesson free of idioms, culture-bound references and assumptions about prior
+        knowledge that would confuse {audience}?
+      pass_criteria:
+        - Uses literal, plain English with no idioms or figurative expressions.
+        - Every reference and example is familiar in India (no Western-only references).
+        - Never assumes the reader already knows programming, machine learning or AI.
+      fail_criteria:
+        - Any idiom, slang or phrasal verb with a non-literal meaning (for example "piece of cake", "ballpark figure", "under the hood").
+        - Any reference that needs Western cultural knowledge (for example Thanksgiving, Super Bowl, SAT).
+        - Any phrase that assumes knowledge the lesson has not given (for example "as you know", "obviously", "recall that", "you have probably used vector search").
+
+  - id: LANG-5
+    dimension: language
+    title: Right length
+    method: deterministic
+    severity: major
+    impl: lesson_length
+    params: {min_words: 900, max_words: 2000}
+    pass_condition: The lesson body has 900 to 2,000 words (a 10-15 minute read).
+
+  # ------------------------------------------------------------------ examples
+  - id: EX-1
+    dimension: examples
+    title: Concrete worked example
+    method: llm_judge
+    severity: major
+    pass_condition: One concrete end-to-end worked example shows every step with real content.
+    judge:
+      question: >-
+        Does the lesson walk through at least one concrete, end-to-end worked example of
+        {topic_title}?
+      pass_criteria:
+        - "The example uses specific, realistic content (actual words, actual data), not placeholders."
+        - "The example clearly shows each of these: {example_must_show}."
+      fail_criteria:
+        - The example is generic or abstract (for example "a user asks something and gets an answer").
+        - Any of the required parts listed above is missing from the example.
+        - There is no worked example at all.
+
+  - id: EX-2
+    dimension: examples
+    title: Relatable Indian analogy, mapped
+    method: llm_judge
+    severity: major
+    pass_condition: At least one everyday-India analogy whose parts are explicitly mapped to the topic.
+    judge:
+      question: >-
+        Does the lesson use at least one everyday analogy familiar to {audience}, and does it
+        explicitly map the analogy's parts to the parts of {topic_title}?
+      pass_criteria:
+        - The analogy comes from everyday Indian life (for example an open-book exam, a school library, a kirana shop, a railway enquiry counter).
+        - The lesson explicitly says which part of the analogy matches which part of {topic_title} (at least two clear mappings).
+      fail_criteria:
+        - There is no analogy.
+        - The analogy depends on things that are unfamiliar in India.
+        - The analogy is given but its parts are never mapped to the real parts of {topic_title}.
+
+  # ------------------------------------------------------------------ jargon
+  - id: JAR-1
+    dimension: jargon
+    title: Glossary covers all jargon
+    method: deterministic
+    severity: major
+    impl: glossary_covers_jargon
+    pass_condition: Every technical term from the topic's jargon list that the lesson uses has a glossary entry.
+
+  - id: JAR-2
+    dimension: jargon
+    title: Terms explained at first use
+    method: llm_judge
+    severity: major
+    pass_condition: Every technical term is explained in simple words at or before its first use in the body.
+    judge:
+      question: >-
+        Is every technical term explained in simple words at, or before, the place where it
+        is first used in the lesson body?
+      pass_criteria:
+        - "Each technical term (such as: {jargon_examples}) is explained in simple words the first time it appears, or earlier."
+        - The explanation appears in the body text itself, not only in the glossary.
+      fail_criteria:
+        - Any technical term is used before it is explained.
+        - Any technical term is explained only in the glossary.
+        - An explanation itself relies on other technical terms that are not explained.
+
+  - id: JAR-3
+    dimension: jargon
+    title: Acronyms expanded
+    method: deterministic
+    severity: major
+    impl: acronyms_expanded
+    pass_condition: Every acronym is written out in full where it is first used.
+
+  - id: JAR-4
+    dimension: jargon
+    title: Helper-language hint for every key word
+    method: deterministic
+    severity: major
+    impl: helper_hints_present
+    pass_condition: Every glossary entry has a meaning written in the {helper_language} script.
+
+  # ------------------------------------------------------------------ coverage
+  - id: COV-1
+    dimension: coverage
+    title: Explains what it is
+    method: llm_judge
+    severity: critical
+    pass_condition: Gives a short, correct, simple definition of the topic early in the lesson.
+    judge:
+      question: Does the lesson clearly and correctly define what {topic_title} is?
+      pass_criteria:
+        - Gives a short, simple definition (1-3 sentences) early in the lesson.
+        - "The definition conveys this idea: {what}"
+      fail_criteria:
+        - There is no clear definition.
+        - The definition is wrong, vague, or misses part of the idea above.
+        - The definition depends on jargon that has not been explained yet.
+
+  - id: COV-2
+    dimension: coverage
+    title: Explains why it matters
+    method: llm_judge
+    severity: critical
+    pass_condition: Explains at least two problems the topic solves, each with a concrete consequence.
+    judge:
+      question: Does the lesson explain why {topic_title} matters, using concrete consequences?
+      pass_criteria:
+        - "Explains at least two of these problems: {why_points}."
+        - For each problem, shows a concrete consequence or example of what goes wrong without it.
+      fail_criteria:
+        - Fewer than two of the problems are explained.
+        - Problems are only named, without a concrete consequence or example.
+
+  - id: COV-3
+    dimension: coverage
+    title: Explains how it works, in order
+    method: llm_judge
+    severity: critical
+    pass_condition: Explains every step of how it works, correctly and in the correct order.
+    judge:
+      question: Does the lesson explain how {topic_title} works, step by step, in the correct order?
+      pass_criteria:
+        - "Covers every one of these steps: {how_steps}."
+        - Presents them in this order; neighbouring steps may be merged only if both are clearly explained.
+      fail_criteria:
+        - Any step is missing.
+        - The steps are in the wrong order.
+        - Any step is described incorrectly.
+
+  - id: COV-4
+    dimension: coverage
+    title: Limits and misconceptions
+    method: llm_judge
+    severity: major
+    pass_condition: States at least one limitation and explicitly corrects at least one misconception.
+    judge:
+      question: >-
+        Does the lesson state at least one limitation of {topic_title} and explicitly correct
+        at least one common misconception?
+      pass_criteria:
+        - "States at least one of these limitations: {limitations}."
+        - "Explicitly corrects at least one of these misconceptions: {misconceptions}."
+      fail_criteria:
+        - No limitation is mentioned.
+        - No misconception is explicitly corrected.
+        - A misconception is stated as if it were true.
+
+  - id: COV-5
+    dimension: coverage
+    title: Simulated learner passes
+    method: learner
+    severity: major
+    params: {min_correct: 5}
+    pass_condition: >-
+      A simulated beginner who reads only the lesson answers at least 5 of the held-out
+      questions correctly, quoting the lesson as support.
+
+  # ------------------------------------------------------------------ flow
+  - id: FLOW-1
+    dimension: flow
+    title: Sections in teaching order
+    method: deterministic
+    severity: critical
+    impl: section_order
+    pass_condition: >-
+      Has the required sections in teaching order: what it is -> why it matters -> how it
+      works -> worked example -> summary.
+
+  - id: FLOW-2
+    dimension: flow
+    title: Builds step by step
+    method: llm_judge
+    severity: major
+    pass_condition: No idea is used before it is introduced; each section builds on the previous one.
+    judge:
+      question: >-
+        Does the lesson build step by step, so that no idea or term is used before it has
+        been introduced?
+      pass_criteria:
+        - Each section builds on what came before; ideas are introduced before they are used.
+        - The learner can see why each section comes next (clear transitions).
+        - The summary only recaps ideas that were taught.
+      fail_criteria:
+        - Any idea or term is used before it is introduced.
+        - A section depends on something that is only explained later.
+        - The summary introduces new ideas.
+
+  - id: FLOW-3
+    dimension: flow
+    title: Valid quiz
+    method: deterministic
+    severity: major
+    impl: quiz_structure
+    params: {min_questions: 3, max_questions: 5, min_options: 3, max_options: 4}
+    pass_condition: >-
+      3 to 5 multiple-choice questions, each with 3-4 distinct options, exactly one marked
+      correct and an explanation.
+
+  - id: FLOW-4
+    dimension: flow
+    title: Quiz tests what was taught
+    method: llm_judge
+    severity: major
+    pass_condition: Every quiz answer is taught in the lesson body and the marked answers are correct.
+    judge:
+      question: >-
+        Is the correct answer to every quiz question taught in the lesson body, and is every
+        marked answer actually correct?
+      pass_criteria:
+        - For every question, the marked correct option is clearly supported by something the lesson body teaches.
+        - No other option is also correct.
+      fail_criteria:
+        - Any question tests something the lesson body does not teach.
+        - Any marked answer is wrong, or another option is equally correct.
