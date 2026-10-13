@@ -103,13 +103,22 @@ class Worker:
                 log.info("job_still_owned_elsewhere", run_id=job.run_id)
             return  # another live worker owns it; it stays pending until that worker acks
         heartbeat = asyncio.create_task(self._heartbeat(key))
+        finished = False
         try:
+            # execute() turns every failure into a terminal run state; only cancellation
+            # (worker shutdown) escapes it.
             await self.execute(job, resumed=reclaimed)
+            finished = True
         finally:
             heartbeat.cancel()
             with contextlib.suppress(asyncio.CancelledError):
                 await heartbeat
-            await self.queue.ack(entry_id)
+            if finished:
+                await self.queue.ack(entry_id)
+            else:
+                # Interrupted mid-run (e.g. SIGTERM during a deploy): leave the job pending so
+                # another worker reclaims it and LangGraph resumes from the last checkpoint.
+                log.warning("run_interrupted_left_pending", run_id=job.run_id)
             owner = await self.redis.get(key)
             if owner in (self.consumer, self.consumer.encode()):
                 await self.redis.delete(key)

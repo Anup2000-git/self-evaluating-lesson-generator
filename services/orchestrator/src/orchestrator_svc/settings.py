@@ -26,8 +26,10 @@ class OrchestratorSettings(ServiceSettings):
     job_stream: str = "jobs:runs"
     job_group: str = "orchestrator-workers"
     worker_concurrency: int = 2
-    job_lock_ttl_seconds: int = 60
-    job_reclaim_idle_ms: int = 90_000
+    # A running worker refreshes its lock every ttl/3; other workers reclaim a pending job only
+    # once its lock has expired, so a low idle threshold is safe and makes recovery quick.
+    job_lock_ttl_seconds: int = 30
+    job_reclaim_idle_ms: int = 30_000
     sse_block_ms: int = 10_000
 
     # Downstream timeouts (LLM-heavy calls take minutes with reasoning models).

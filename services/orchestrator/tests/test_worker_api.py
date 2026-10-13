@@ -2,6 +2,7 @@
 
 import json
 
+import pytest
 from fastapi.testclient import TestClient
 
 from lessongen_common.events import EventBus
@@ -70,6 +71,45 @@ async def test_failed_run_is_marked_failed_and_reported(
     assert fake_clients.memory.runs["run_t"].status == RunStatus.FAILED
     assert "boom" in fake_clients.memory.runs["run_t"].error
     assert bus.types("run_t")[-1] == "run.failed"
+
+
+async def test_shutdown_mid_run_leaves_the_job_pending_for_another_worker(
+    settings, fake_redis, make_pipeline, fake_clients, job_factory, bus
+) -> None:
+    import asyncio
+
+    started = asyncio.Event()
+
+    class HangingEvaluator:
+        async def evaluate(self, request):
+            started.set()
+            await asyncio.Event().wait()  # never returns: the worker gets SIGTERM meanwhile
+
+    graph, _ = make_pipeline(HangingEvaluator())
+    worker = Worker(
+        settings=settings,
+        redis=fake_redis,
+        clients=fake_clients,
+        graph=graph,
+        bus=bus,
+        consumer="w1",
+    )
+    queue = JobQueue(fake_redis, settings.job_stream, settings.job_group)
+    await queue.ensure_group()
+    fake_clients.memory.ensure("run_t")
+    await queue.enqueue(job_factory())
+    [(entry_id, job)] = await queue.read("w1", 1, block_ms=10)
+
+    task = asyncio.create_task(worker.process(entry_id, job))
+    await asyncio.wait_for(started.wait(), timeout=5)
+    task.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await task
+
+    assert (await queue.depth())["pending"] == 1  # NOT acked - it will be reclaimed
+    assert not await fake_redis.exists(lock_key("run_t"))  # lock released for a fast takeover
+    snapshot = await graph.aget_state({"configurable": {"thread_id": "run_t"}})
+    assert snapshot.next == ("evaluate",)  # the next worker resumes exactly here
 
 
 async def test_abandoned_jobs_are_reclaimed(settings, fake_redis, job_factory) -> None:
