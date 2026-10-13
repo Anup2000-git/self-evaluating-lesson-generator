@@ -1,0 +1,135 @@
+/* Charts follow the data-viz method: thin marks, 4px rounded data-ends, hairline solid
+   gridlines, text in text tokens (never the series colour), hover tooltip + table twin. */
+.chart-figure {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chart-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.chart-title {
+  font-weight: 620;
+  font-size: 0.95rem;
+}
+
+.chart-subtitle {
+  margin-top: 2px;
+  font-size: 0.8rem;
+  color: var(--text-3);
+}
+
+.chart-canvas {
+  position: relative;
+  width: 100%;
+}
+
+.chart-canvas svg {
+  display: block;
+  overflow: visible;
+}
+
+.chart-grid {
+  stroke: var(--grid);
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+
+.chart-baseline {
+  stroke: var(--axis);
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+
+.chart-tick {
+  fill: var(--axis-text);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.chart-label {
+  fill: var(--text-2);
+  font-size: 11.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.chart-category {
+  fill: var(--text-2);
+  font-size: 12px;
+}
+
+.chart-mark {
+  fill: var(--series-1);
+  transition: opacity 0.12s ease;
+}
+
+.chart-hit {
+  fill: transparent;
+  cursor: default;
+}
+
+.chart-hit:focus {
+  outline: none;
+}
+
+.chart-canvas.hovering .chart-mark {
+  opacity: 0.45;
+}
+
+.chart-canvas.hovering .chart-mark.hot {
+  opacity: 1;
+}
+
+.chart-tooltip {
+  position: absolute;
+  z-index: 5;
+  pointer-events: none;
+  min-width: 150px;
+  max-width: 240px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow);
+  font-size: 0.8rem;
+  transform: translate(-50%, calc(-100% - 10px));
+}
+
+.chart-tooltip .tt-value {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.chart-tooltip .tt-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-2);
+}
+
+.chart-tooltip .tt-key {
+  width: 12px;
+  height: 2px;
+  background: var(--series-1);
+  border-radius: 1px;
+}
+
+.chart-tooltip .tt-extra {
+  margin-top: 4px;
+  color: var(--text-3);
+}
+
+.chart-empty {
+  padding: 28px 12px;
+  text-align: center;
+  color: var(--text-3);
+  font-size: 0.88rem;
+}

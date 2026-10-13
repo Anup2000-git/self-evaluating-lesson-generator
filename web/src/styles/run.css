@@ -1,0 +1,370 @@
+/* ------------------------------------------------------------ run header */
+.run-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
+}
+
+.run-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  margin-top: 8px;
+  color: var(--text-2);
+  font-size: 0.86rem;
+}
+
+.run-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ------------------------------------------------------- pipeline graph */
+.pipeline-scroll {
+  overflow-x: auto;
+  padding: 6px 4px 2px;
+}
+
+.pipeline {
+  display: block;
+  min-width: 860px;
+  width: 100%;
+  height: auto;
+}
+
+.pipeline .edge {
+  fill: none;
+  stroke: var(--axis);
+  stroke-width: 1.5;
+}
+
+.pipeline .edge.hot {
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+.pipeline .edge-label {
+  font-size: 11px;
+  fill: var(--text-3);
+}
+
+.pipeline .node rect,
+.pipeline .node polygon {
+  fill: var(--surface);
+  stroke: var(--border-strong);
+  stroke-width: 1.2;
+}
+
+.pipeline .node text {
+  font-size: 12.5px;
+  font-weight: 600;
+  fill: var(--text-2);
+}
+
+.pipeline .node .sub {
+  font-size: 10.5px;
+  font-weight: 500;
+  fill: var(--text-3);
+}
+
+.pipeline .node.active rect,
+.pipeline .node.active polygon {
+  fill: var(--accent-wash);
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+.pipeline .node.active text {
+  fill: var(--accent-ink);
+}
+
+.pipeline .node.active .ring {
+  stroke: var(--accent);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+.pipeline .node.done rect,
+.pipeline .node.done polygon {
+  stroke: var(--good);
+  stroke-width: 1.6;
+}
+
+.pipeline .node.done text {
+  fill: var(--text);
+}
+
+.pipeline .node.failed rect {
+  fill: var(--critical-wash);
+  stroke: var(--critical);
+  stroke-width: 2;
+}
+
+.pipeline .node.pending {
+  opacity: 0.72;
+}
+
+.pipeline .status-dot.done {
+  fill: var(--good);
+}
+
+.pipeline .status-dot.failed {
+  fill: var(--critical);
+}
+
+.pipeline .status-dot.active {
+  fill: var(--accent);
+}
+
+.pipeline .badge-bg {
+  fill: var(--text);
+}
+
+.pipeline .badge-text {
+  fill: var(--page);
+  font-size: 10.5px;
+  font-weight: 650;
+}
+
+/* -------------------------------------------------------- activity feed */
+.feed {
+  display: flex;
+  flex-direction: column;
+  max-height: 640px;
+  overflow-y: auto;
+  padding: 6px 0;
+}
+
+.feed-item {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 8px;
+  padding: 7px 16px;
+  font-size: 0.86rem;
+}
+
+.feed-item .icon {
+  margin-top: 1px;
+  color: var(--text-3);
+}
+
+.feed-item.tone-pass .icon {
+  color: var(--good);
+}
+
+.feed-item.tone-fail .icon {
+  color: var(--critical);
+}
+
+.feed-item.tone-agent .icon {
+  color: var(--accent);
+}
+
+.feed-item.tone-memory .icon {
+  color: #6250d6;
+}
+
+.feed-item.tone-muted {
+  color: var(--text-3);
+}
+
+.feed-title {
+  font-weight: 560;
+  overflow-wrap: anywhere;
+}
+
+.feed-item.tone-muted .feed-title {
+  font-weight: 450;
+}
+
+.feed-detail {
+  margin-top: 2px;
+  white-space: pre-wrap;
+  color: var(--text-2);
+  overflow-wrap: anywhere;
+}
+
+.feed-extra {
+  margin-top: 3px;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  color: var(--text-3);
+  overflow-wrap: anywhere;
+}
+
+.feed-meta {
+  margin-left: 6px;
+  font-size: 0.72rem;
+  color: var(--text-3);
+  font-weight: 450;
+}
+
+/* ------------------------------------------------------------- attempts */
+.attempts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.attempt-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  cursor: pointer;
+  font-weight: 560;
+  font-size: 0.86rem;
+  color: var(--text-2);
+}
+
+.attempt-pill[aria-pressed="true"] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-wash);
+  color: var(--text);
+}
+
+.attempt-arrow {
+  align-self: center;
+  color: var(--text-3);
+}
+
+/* ------------------------------------------------------------ scorecard */
+.scorecard {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.dimension h3 {
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-3);
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.check-row {
+  display: grid;
+  grid-template-columns: 74px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  text-align: left;
+  cursor: pointer;
+  margin-bottom: 6px;
+}
+
+.check-row:hover {
+  background: var(--surface-2);
+}
+
+.check-row[aria-pressed="true"] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-wash);
+}
+
+.check-row .check-name {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.check-row .check-id {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  color: var(--text-3);
+}
+
+.check-row .check-title {
+  font-weight: 560;
+  font-size: 0.88rem;
+  overflow-wrap: anywhere;
+}
+
+.verdict {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.verdict.pass {
+  background: var(--good-wash);
+  color: var(--good-ink);
+}
+
+.verdict.fail {
+  background: var(--critical-wash);
+  color: var(--critical-ink);
+}
+
+.verdict.pending {
+  background: var(--surface-3);
+  color: var(--text-3);
+}
+
+.check-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.check-detail h3 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.claims .verdict {
+  min-width: 96px;
+}
+
+.votes {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.vote {
+  display: grid;
+  grid-template-columns: 120px 70px minmax(0, 1fr);
+  gap: 8px;
+  font-size: 0.84rem;
+  align-items: start;
+}
+
+.diff-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.fault-banner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  align-items: center;
+}
+
+@media (max-width: 560px) {
+  .vote {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

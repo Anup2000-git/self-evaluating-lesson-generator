@@ -1,0 +1,111 @@
+/* Design tokens. Neutrals, accent and status colours follow the validated data-viz
+   reference palette so the app chrome and the charts read as one system. */
+
+:root {
+  color-scheme: light;
+
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans",
+    "Noto Sans Devanagari", "Nirmala UI", Mangal, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "Cascadia Code", Consolas, monospace;
+
+  --page: #f9f9f7;
+  --surface: #fcfcfb;
+  --surface-2: #f4f4f1;
+  --surface-3: #ecebe6;
+  --text: #0b0b0b;
+  --text-2: #52514e;
+  --text-3: #6b6a65;
+  --border: rgba(11, 11, 11, 0.1);
+  --border-strong: rgba(11, 11, 11, 0.18);
+
+  --accent: #2a78d6;
+  --accent-hover: #256abf;
+  --accent-ink: #1c5cab;
+  --accent-wash: rgba(42, 120, 214, 0.1);
+  --on-accent: #ffffff;
+
+  --good: #0ca30c;
+  --good-ink: #006300;
+  --good-wash: rgba(12, 163, 12, 0.1);
+  --warning: #fab219;
+  --warning-ink: #7a5200;
+  --warning-wash: rgba(250, 178, 25, 0.16);
+  --serious: #ec835a;
+  --critical: #d03b3b;
+  --critical-ink: #b42323;
+  --critical-wash: rgba(208, 59, 59, 0.09);
+
+  /* chart chrome */
+  --series-1: #2a78d6;
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+  --axis-text: #898781;
+
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --shadow-sm: 0 1px 2px rgba(11, 11, 11, 0.05);
+  --shadow: 0 1px 3px rgba(11, 11, 11, 0.06), 0 10px 30px rgba(11, 11, 11, 0.05);
+  --focus: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent);
+
+  --sidebar-width: 236px;
+  --content-max: 1240px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --surface-2: #222220;
+    --surface-3: #2c2c2a;
+    --text: #f0efec;
+    --text-2: #c3c2b7;
+    --text-3: #a3a29a;
+    --border: rgba(255, 255, 255, 0.1);
+    --border-strong: rgba(255, 255, 255, 0.18);
+    --accent: #3987e5;
+    --accent-hover: #5598e7;
+    --accent-ink: #86b6ef;
+    --accent-wash: rgba(57, 135, 229, 0.16);
+    --good-ink: #2bc22b;
+    --good-wash: rgba(12, 163, 12, 0.16);
+    --warning-ink: #fab219;
+    --warning-wash: rgba(250, 178, 25, 0.14);
+    --critical-ink: #ec7474;
+    --critical-wash: rgba(208, 59, 59, 0.18);
+    --series-1: #3987e5;
+    --grid: #2c2c2a;
+    --axis: #383835;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.5), 0 10px 30px rgba(0, 0, 0, 0.35);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d;
+  --surface: #1a1a19;
+  --surface-2: #222220;
+  --surface-3: #2c2c2a;
+  --text: #f0efec;
+  --text-2: #c3c2b7;
+  --text-3: #a3a29a;
+  --border: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  --accent: #3987e5;
+  --accent-hover: #5598e7;
+  --accent-ink: #86b6ef;
+  --accent-wash: rgba(57, 135, 229, 0.16);
+  --good-ink: #2bc22b;
+  --good-wash: rgba(12, 163, 12, 0.16);
+  --warning-ink: #fab219;
+  --warning-wash: rgba(250, 178, 25, 0.14);
+  --critical-ink: #ec7474;
+  --critical-wash: rgba(208, 59, 59, 0.18);
+  --series-1: #3987e5;
+  --grid: #2c2c2a;
+  --axis: #383835;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.5), 0 10px 30px rgba(0, 0, 0, 0.35);
+}

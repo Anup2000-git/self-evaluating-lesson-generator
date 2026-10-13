@@ -20,8 +20,9 @@ from evaluator_svc.faults import (
 from evaluator_svc.settings import EvaluatorSettings
 from lessongen_common.http import ServiceClient
 from lessongen_common.llm import LLMProvider
-from lessongen_common.schemas import EvaluateRequest, EvaluationReport
+from lessongen_common.schemas import EvaluateRequest, EvaluationReport, Lesson
 from lessongen_common.service import create_service_app
+from lessongen_common.testing.samples import sample_lesson
 
 router = APIRouter(prefix="/v1")
 
@@ -42,6 +43,13 @@ async def faults() -> list[FaultInfo]:
 @router.post("/faults/apply", response_model=FaultApplied, tags=["evaluator lab"])
 async def inject_fault(body: FaultApplyRequest) -> FaultApplied:
     return apply_fault(body.lesson, body.fault_id)
+
+
+@router.get("/faults/reference-lesson", response_model=Lesson, tags=["evaluator lab"])
+async def reference_lesson() -> Lesson:
+    """A reviewed, hand-written RAG lesson that passes every deterministic check - the Lab's
+    default starting point before any run has shipped."""
+    return sample_lesson()
 
 
 def create_app(

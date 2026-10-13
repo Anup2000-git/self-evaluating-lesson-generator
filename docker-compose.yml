@@ -209,6 +209,23 @@ services:
       evaluator: { condition: service_healthy }
       orchestrator-api: { condition: service_healthy }
 
+  # ---------------------------------------------------------- gateway + UI (public)
+  web:
+    image: lessongen/web:local
+    build:
+      context: ./web
+    restart: unless-stopped
+    logging: *logging
+    ports:
+      # Bound to localhost: the app has no login and spends Azure credits. Change deliberately.
+      - "127.0.0.1:${WEB_PORT:-8080}:8080"
+    depends_on:
+      orchestrator-api: { condition: service_healthy }
+      memory: { condition: service_healthy }
+      evaluator: { condition: service_healthy }
+      knowledge: { condition: service_healthy }
+    networks: [backend]
+
 networks:
   backend:
     name: lessongen-backend

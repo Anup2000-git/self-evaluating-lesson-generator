@@ -1,0 +1,158 @@
+/* The learner-facing lesson: larger type, generous line height, readable measure. */
+.lesson {
+  max-width: 76ch;
+  margin: 0 auto;
+  padding: 8px 4px 24px;
+  font-size: 1.04rem;
+  line-height: 1.72;
+  color: var(--text);
+}
+
+.lesson h1 {
+  font-size: 1.85rem;
+  line-height: 1.2;
+  margin-bottom: 18px;
+}
+
+.lesson h2 {
+  font-size: 1.3rem;
+  margin: 34px 0 10px;
+}
+
+.lesson h3 {
+  font-size: 1.08rem;
+  margin: 22px 0 8px;
+}
+
+.lesson p {
+  margin: 0 0 14px;
+}
+
+.lesson ul,
+.lesson ol {
+  margin: 0 0 14px;
+  padding-left: 1.4em;
+}
+
+.lesson li {
+  margin: 4px 0;
+}
+
+.lesson blockquote {
+  margin: 0 0 14px;
+  padding: 10px 16px;
+  border-left: 3px solid var(--accent);
+  background: var(--accent-wash);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.lesson blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+.lesson table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 16px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.lesson th,
+.lesson td {
+  border: 1px solid var(--border-strong);
+  padding: 8px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.lesson th {
+  background: var(--surface-2);
+}
+
+.lesson .section-kind {
+  display: inline-block;
+  margin-bottom: 4px;
+  font-size: 0.7rem;
+  font-weight: 650;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.objectives {
+  padding: 14px 18px;
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+
+.objectives ul {
+  margin-bottom: 0;
+}
+
+.quiz-question {
+  margin: 0 0 18px;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.quiz-question p {
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.quiz-option {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  text-align: left;
+  font-size: 0.98rem;
+  cursor: pointer;
+}
+
+.quiz-option:hover:not(:disabled) {
+  background: var(--surface-2);
+}
+
+.quiz-option:disabled {
+  cursor: default;
+}
+
+.quiz-option.correct {
+  border-color: var(--good);
+  background: var(--good-wash);
+}
+
+.quiz-option.wrong {
+  border-color: var(--critical);
+  background: var(--critical-wash);
+}
+
+.quiz-letter {
+  font-weight: 700;
+  color: var(--text-3);
+}
+
+.quiz-explain {
+  margin-top: 10px;
+  font-size: 0.95rem;
+  color: var(--text-2);
+}
+
+.hindi {
+  font-family: "Noto Sans Devanagari", "Nirmala UI", Mangal, var(--font-sans);
+}
