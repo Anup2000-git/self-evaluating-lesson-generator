@@ -1,0 +1,26 @@
+# Developer overlay: publish every service port on localhost for debugging and for the
+# Vite dev server (npm run dev proxies /api/* to these ports).
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+services:
+  orchestrator-api:
+    ports: ["127.0.0.1:8000:8000"]
+    environment:
+      ROOT_PATH: ""
+  generator:
+    ports: ["127.0.0.1:8001:8001"]
+  evaluator:
+    ports: ["127.0.0.1:8002:8002"]
+    environment:
+      ROOT_PATH: ""
+  knowledge:
+    ports: ["127.0.0.1:8003:8003"]
+    environment:
+      ROOT_PATH: ""
+  memory:
+    ports: ["127.0.0.1:8004:8004"]
+    environment:
+      ROOT_PATH: ""
+  postgres:
+    ports: ["127.0.0.1:5432:5432"]
+  redis:
+    ports: ["127.0.0.1:6379:6379"]

@@ -13,12 +13,11 @@ from typing import Any
 
 from langchain_core.language_models.chat_models import BaseChatModel
 
+from lessongen_common.errors import LLMNotConfiguredError
 from lessongen_common.llm.config import LLMRole, LLMSettings, ResolvedRole
 from lessongen_common.llm.usage import UsageCallback
 
-
-class LLMNotConfiguredError(RuntimeError):
-    pass
+__all__ = ["LLMNotConfiguredError", "LLMProvider"]
 
 
 class LLMProvider:

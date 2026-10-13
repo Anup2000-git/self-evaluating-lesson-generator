@@ -1,0 +1,218 @@
+# Self-Evaluating Lesson Generator - full stack.
+#   cp .env.example .env   # add your Azure OpenAI endpoint, key and deployments
+#   docker compose up --build
+#   open http://localhost:8080
+# Only the `web` gateway publishes a port; every other service is on the private network.
+
+name: lessongen
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+x-python-service: &python-service
+  restart: unless-stopped
+  logging: *logging
+  env_file:
+    - path: .env
+      required: false
+  networks: [backend]
+  deploy:
+    resources:
+      limits:
+        memory: 768M
+
+x-python-env: &python-env
+  ENVIRONMENT: docker
+  REDIS_URL: redis://redis:6379/0
+  KNOWLEDGE_URL: http://knowledge:8003
+  MEMORY_URL: http://memory:8004
+  GENERATOR_URL: http://generator:8001
+  EVALUATOR_URL: http://evaluator:8002
+  ORCHESTRATOR_URL: http://orchestrator-api:8000
+
+x-build: &build
+  context: .
+  dockerfile: docker/python-service.Dockerfile
+
+services:
+  # ------------------------------------------------------------------ infrastructure
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    logging: *logging
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-lessongen}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me-local-only}
+      POSTGRES_DB: ${POSTGRES_DB:-lessongen}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-lessongen} -d lessongen_memory"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [backend]
+
+  redis:
+    image: redis:7.4-alpine
+    restart: unless-stopped
+    logging: *logging
+    command: ["redis-server", "--appendonly", "yes", "--save", "60", "1000"]
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [backend]
+
+  migrate:
+    <<: *python-service
+    image: lessongen/memory:local
+    build:
+      <<: *build
+      args: { PACKAGE: lessongen-memory }
+    restart: "no"
+    command: ["python", "-m", "memory_svc.migrate"]
+    environment:
+      <<: *python-env
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-lessongen}:${POSTGRES_PASSWORD:-change-me-local-only}@postgres:5432/lessongen_memory
+    depends_on:
+      postgres: { condition: service_healthy }
+
+  # ---------------------------------------------------------------------- services
+  knowledge:
+    <<: *python-service
+    image: lessongen/knowledge:local
+    build:
+      <<: *build
+      args: { PACKAGE: lessongen-knowledge }
+    command: ["python", "-m", "knowledge_svc"]
+    environment:
+      <<: *python-env
+      SERVICE_PORT: "8003"
+      ROOT_PATH: /api/knowledge
+      EMBEDDING_CACHE_DIR: /app/cache
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:8003/readyz', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
+
+  memory:
+    <<: *python-service
+    image: lessongen/memory:local
+    build:
+      <<: *build
+      args: { PACKAGE: lessongen-memory }
+    command: ["python", "-m", "memory_svc"]
+    environment:
+      <<: *python-env
+      SERVICE_PORT: "8004"
+      ROOT_PATH: /api/memory
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-lessongen}:${POSTGRES_PASSWORD:-change-me-local-only}@postgres:5432/lessongen_memory
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:8004/readyz', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
+
+  generator:
+    <<: *python-service
+    image: lessongen/generator:local
+    build:
+      <<: *build
+      args: { PACKAGE: lessongen-generator }
+    command: ["python", "-m", "generator_svc"]
+    environment:
+      <<: *python-env
+      SERVICE_PORT: "8001"
+    depends_on:
+      knowledge: { condition: service_healthy }
+      memory: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:8001/readyz', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
+
+  evaluator:
+    <<: *python-service
+    image: lessongen/evaluator:local
+    build:
+      <<: *build
+      args: { PACKAGE: lessongen-evaluator }
+    command: ["python", "-m", "evaluator_svc"]
+    environment:
+      <<: *python-env
+      SERVICE_PORT: "8002"
+      ROOT_PATH: /api/evaluator
+    depends_on:
+      knowledge: { condition: service_healthy }
+      memory: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:8002/readyz', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
+
+  orchestrator-api:
+    <<: *python-service
+    image: lessongen/orchestrator:local
+    build:
+      <<: *build
+      args: { PACKAGE: lessongen-orchestrator }
+    command: ["python", "-m", "orchestrator_svc"]
+    environment:
+      <<: *python-env
+      SERVICE_PORT: "8000"
+      ROOT_PATH: /api/orchestrator
+      CHECKPOINT_DATABASE_URL: postgresql://${POSTGRES_USER:-lessongen}:${POSTGRES_PASSWORD:-change-me-local-only}@postgres:5432/lessongen_orchestrator
+    depends_on:
+      knowledge: { condition: service_healthy }
+      memory: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:8000/readyz', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
+
+  orchestrator-worker:
+    <<: *python-service
+    image: lessongen/orchestrator:local
+    build:
+      <<: *build
+      args: { PACKAGE: lessongen-orchestrator }
+    command: ["python", "-m", "orchestrator_svc.worker"]
+    stop_grace_period: 40s
+    environment:
+      <<: *python-env
+      CHECKPOINT_DATABASE_URL: postgresql://${POSTGRES_USER:-lessongen}:${POSTGRES_PASSWORD:-change-me-local-only}@postgres:5432/lessongen_orchestrator
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      generator: { condition: service_healthy }
+      evaluator: { condition: service_healthy }
+      orchestrator-api: { condition: service_healthy }
+
+networks:
+  backend:
+    name: lessongen-backend
+
+volumes:
+  pgdata:
+  redisdata:

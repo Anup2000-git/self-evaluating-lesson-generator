@@ -20,7 +20,12 @@ from redis.asyncio import Redis
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from lessongen_common.context import HEADER_REQUEST_ID, context_from_headers, set_context
-from lessongen_common.errors import LessongenError, NotFoundError, ServiceError
+from lessongen_common.errors import (
+    LessongenError,
+    LLMNotConfiguredError,
+    NotFoundError,
+    ServiceError,
+)
 from lessongen_common.events import EventBus, configure_event_bus
 from lessongen_common.logs import configure_logging, get_logger
 from lessongen_common.settings import ServiceSettings
@@ -166,6 +171,11 @@ def create_service_app(
     @app.exception_handler(NotFoundError)
     async def _not_found(request: Request, exc: NotFoundError) -> JSONResponse:
         return _problem(404, "Not found", str(exc), request)
+
+    @app.exception_handler(LLMNotConfiguredError)
+    async def _llm_missing(request: Request, exc: LLMNotConfiguredError) -> JSONResponse:
+        # 424 Failed Dependency: a configuration problem, so callers must not retry it.
+        return _problem(424, "LLM not configured", str(exc), request)
 
     @app.exception_handler(ServiceError)
     async def _upstream(request: Request, exc: ServiceError) -> JSONResponse:

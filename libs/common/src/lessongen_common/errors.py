@@ -36,3 +36,7 @@ class BudgetExceededError(LessongenError):
 
 class NotFoundError(LessongenError):
     """A requested resource does not exist."""
+
+
+class LLMNotConfiguredError(LessongenError):
+    """Azure OpenAI credentials are missing (returned as HTTP 424, never retried)."""
