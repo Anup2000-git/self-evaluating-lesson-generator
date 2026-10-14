@@ -32,6 +32,7 @@ from lessongen_common.schemas import (
     TopicPackSummary,
 )
 from lessongen_common.service import create_service_app
+from lessongen_common.tracing import get_tracer
 from orchestrator_svc import __version__
 from orchestrator_svc.jobs import Job, JobQueue, cancel_key
 from orchestrator_svc.settings import OrchestratorSettings
@@ -126,7 +127,9 @@ async def list_runs(
 
 @router.get("/runs/{run_id}", response_model=RunDetail, tags=["runs"])
 async def get_run(run_id: str, request: Request) -> RunDetail:
-    return await _clients(request).memory.get_run(run_id)
+    run = await _clients(request).memory.get_run(run_id)
+    run.trace_url = get_tracer().trace_url(run_id)
+    return run
 
 
 @router.post("/runs/{run_id}/cancel", status_code=status.HTTP_202_ACCEPTED, tags=["runs"])
@@ -272,6 +275,7 @@ async def system_status(request: Request) -> dict[str, Any]:
     return {
         "services": services,
         "queue": queue,
+        "tracing": await get_tracer().health(),
         "llm": {
             "configured": provider.settings.configured,
             "api_version": provider.settings.azure_openai_api_version,

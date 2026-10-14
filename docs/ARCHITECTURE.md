@@ -376,15 +376,24 @@ Standard deployments in October 2026.
 - Structured JSON logs (structlog) on every line carry `service`, `request_id`, `run_id`,
   `attempt` and `node`, propagated across services via headers.
 - Per-call cost accounting by model; per-node duration and cost in the events.
-- Optional LangSmith tracing (`LANGSMITH_TRACING=true`) captures every LangGraph/LangChain step.
+- **Langfuse tracing (self-hosted v4, in the compose stack).** Each run is one trace whose id is
+  derived from the run id, so every container - and a worker that resumes a crashed run - writes
+  into the same trace. The worker opens a span per pipeline node; `ServiceClient` forwards it as
+  a W3C `traceparent` header; each service opens its operation span (`generator.write`,
+  `evaluator.evaluate`, `memory.consolidate` ...) as a child. Inside an operation a Langfuse
+  LangChain callback handler is registered through a LangChain configure hook, so every LangGraph
+  run, ReAct tool call and LLM generation (prompt, output, tokens, latency) lands in that tree
+  without tracing code in the agents. Tracing is off without keys, exports in the background and
+  is never on the critical path: if Langfuse is down, runs carry on and spans are dropped.
 - `/healthz` (liveness) and `/readyz` (dependencies) on every service; the System page and
   `GET /v1/system/status` aggregate them with queue depth and the role -> model map.
 
 **Security.**
 - Secrets live only in `.env` (git-ignored), are `SecretStr` in code, never logged and never sent
   to the browser.
-- Only the gateway publishes a port, bound to localhost by default; the generator has no public
-  route at all; unknown API paths return a JSON 404.
+- Only the gateway and the Langfuse UI publish ports, both bound to localhost; the generator
+  has no public route at all; unknown API paths return a JSON 404. Langfuse runs with sign-up
+  disabled and its own Redis; its project keys and login come from `.env`.
 - Containers run as non-root; the gateway is `nginx-unprivileged` with CSP, `nosniff`,
   frame-deny and referrer headers.
 - Run creation is rate-limited (it spends money); request sizes and field lengths are bounded.
@@ -394,7 +403,7 @@ Standard deployments in October 2026.
 
 ## 11. Testing
 
-- **133 backend tests**, all offline: every LLM is a scripted fake (`lessongen_common.testing`),
+- **140 backend tests**, all offline: every LLM is a scripted fake (`lessongen_common.testing`),
   including tool-calling turns, structured outputs and failures. They cover the ReAct loop
   (research, self-correction, forced submission), judge voting and evidence re-judging, the
   fact-checker rejecting skipped claims, the learner's quote verification, every deterministic

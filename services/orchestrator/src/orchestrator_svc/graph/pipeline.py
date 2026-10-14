@@ -44,6 +44,7 @@ from lessongen_common.schemas import (
     Usage,
     WriteRequest,
 )
+from lessongen_common.tracing import TRACE_NAME, get_tracer
 from orchestrator_svc.graph.policy import (
     choose_strategy,
     route_after_evaluate,
@@ -162,22 +163,31 @@ class Pipeline:
                 attempt = 1
             elif name == "revise":
                 attempt += 1
-            with bind_context(run_id=run_id, attempt=attempt or None, node=name):
+            with (
+                bind_context(run_id=run_id, attempt=attempt or None, node=name),
+                # One Langfuse span per node; service calls made inside nest under it.
+                get_tracer().span(
+                    name,
+                    input={"attempt": attempt} if attempt else None,
+                    trace_name=TRACE_NAME,
+                    tags=[f"mode:{state['mode']}", f"topic:{state['topic_id']}"],
+                    capture_llm=False,
+                ) as span,
+            ):
                 started = time.perf_counter()
                 await emit(EventType.NODE_STARTED, {"node": name})
                 update = await fn(state)
                 summary = update.pop("_summary", "")
                 node_usage = Usage.model_validate(update.get("usage") or {})
-                await emit(
-                    EventType.NODE_COMPLETED,
-                    {
-                        "node": name,
-                        "duration_ms": int((time.perf_counter() - started) * 1000),
-                        "summary": summary,
-                        "cost_usd": round(node_usage.cost_usd, 4),
-                        "llm_calls": node_usage.llm_calls,
-                    },
-                )
+                completed = {
+                    "node": name,
+                    "duration_ms": int((time.perf_counter() - started) * 1000),
+                    "summary": summary,
+                    "cost_usd": round(node_usage.cost_usd, 4),
+                    "llm_calls": node_usage.llm_calls,
+                }
+                span.update(output=completed)
+                await emit(EventType.NODE_COMPLETED, completed)
                 return update
 
         run.__name__ = name

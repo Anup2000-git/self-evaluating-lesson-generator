@@ -167,6 +167,8 @@ export interface RunRecord {
 
 export interface RunDetail extends RunRecord {
   attempts: AttemptRecord[];
+  /** Link to the run's Langfuse trace; null when tracing is off. */
+  trace_url?: string | null;
 }
 
 export interface RunList {
@@ -430,9 +432,19 @@ export interface RoleInfo {
   purpose: string;
 }
 
+export interface TracingStatus {
+  enabled: boolean;
+  ui_url?: string;
+  project_id?: string | null;
+  ok?: boolean;
+  version?: string | null;
+  error?: string;
+}
+
 export interface SystemStatus {
   services: ServiceHealth[];
   queue: { stream_length?: number; pending?: number; error?: string };
+  tracing: TracingStatus;
   llm: { configured: boolean; api_version: string; roles: RoleInfo[] };
   policy: {
     max_retries: number;

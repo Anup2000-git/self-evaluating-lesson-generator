@@ -13,7 +13,8 @@ out of the box, and they are the whole point of a production agent:
 2. **Hard step budget.** After ``max_steps`` model turns we force a structured final
    answer, so the loop always terminates and cost is bounded.
 3. **Observable reasoning.** Every tool takes a ``reason`` argument; together with tool
-   results this is streamed as Thought -> Action -> Observation events for the UI.
+   results this is streamed as Thought -> Action -> Observation events for the UI. Tool
+   calls also go through LangChain's tool callbacks, so tracers (Langfuse) show them.
 """
 
 from __future__ import annotations
@@ -33,6 +34,8 @@ from langchain_core.messages import (
     HumanMessage,
     ToolMessage,
 )
+from langchain_core.runnables import RunnableConfig
+from langchain_core.runnables.config import get_async_callback_manager_for_config
 from langchain_core.utils.function_calling import convert_to_openai_tool
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import add_messages
@@ -170,7 +173,7 @@ class ReactAgent[T: BaseModel]:
             return "tools"
         return "force_submit" if state["steps"] >= self.max_steps else "agent"
 
-    async def _run_tool(self, call: dict[str, Any]) -> ToolMessage:
+    async def _run_tool(self, call: dict[str, Any], config: RunnableConfig) -> ToolMessage:
         tool = self.tools.get(call["name"])
         if tool is None:
             return ToolMessage(
@@ -191,25 +194,35 @@ class ReactAgent[T: BaseModel]:
                 "args": public_args,
             },
         )
+        callbacks = get_async_callback_manager_for_config(config)
+        tool_run = await callbacks.on_tool_start(
+            {"name": tool.name, "description": tool.description},
+            json.dumps(public_args, ensure_ascii=False),
+            name=tool.name,
+            inputs={"reason": getattr(args, "reason", ""), **public_args},
+        )
         try:
             result = await tool.func(args)
         except Exception as exc:  # a broken tool must not kill the agent; it can try again
             log.warning("agent_tool_failed", agent=self.name, tool=tool.name, error=str(exc))
+            await tool_run.on_tool_error(exc)
             result = f"ERROR: tool failed: {exc}"
+        else:
+            await tool_run.on_tool_end(result)
         await emit(
             EventType.AGENT_TOOL_RESULT,
             {"agent": self.name, "tool": tool.name, "preview": tool.preview(result)},
         )
         return ToolMessage(content=result, tool_call_id=call["id"])
 
-    async def _tools_node(self, state: _State) -> dict[str, Any]:
+    async def _tools_node(self, state: _State, config: RunnableConfig) -> dict[str, Any]:
         ai = state["messages"][-1]
         assert isinstance(ai, AIMessage)
         research_calls = [c for c in ai.tool_calls if c["name"] != self.submit.name]
         submit_calls = [c for c in ai.tool_calls if c["name"] == self.submit.name]
 
         messages: list[BaseMessage] = list(
-            await asyncio.gather(*(self._run_tool(c) for c in research_calls))
+            await asyncio.gather(*(self._run_tool(c, config) for c in research_calls))
         )
         submission: dict[str, Any] | None = None
         rejected = 0

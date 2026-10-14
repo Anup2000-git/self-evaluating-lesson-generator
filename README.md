@@ -11,7 +11,7 @@ and shows every step live in a web UI.
   Hindi hints for every key word.
 - **Stack:** Python 3.13 · LangGraph 1.2 · LangChain 1.4 · FastAPI · Azure OpenAI
   (GPT-5.5 + GPT-5.4-mini) · Postgres · Redis Streams · React 19 + TypeScript + plain CSS ·
-  nginx · Docker Compose (10 containers)
+  nginx · self-hosted Langfuse v4 (tracing) · Docker Compose
 
 | Deliverable | Where |
 |---|---|
@@ -63,7 +63,7 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-    B[Browser] --> G["web: nginx gateway + React UI<br/>(only public port 8080)"]
+    B[Browser] --> G["web: nginx gateway + React UI<br/>(localhost:8080)"]
     G --> OA[orchestrator-api<br/>runs, SSE, exports]
     G --> EV[evaluator]
     G --> ME[memory]
@@ -80,11 +80,12 @@ flowchart TB
     ME --> PG
     GE & EV & ME --> AZ{{Azure OpenAI<br/>GPT-5.5 / GPT-5.4-mini}}
     GE & EV & ME & OW -. progress events .-> RS
+    GE & EV & ME & OW -. spans .-> LF["Langfuse v4<br/>traces (localhost:3000)"]
 ```
 
 | Service | Responsibility |
 |---|---|
-| `web` | React UI and the API gateway (prefix routing, unbuffered SSE, rate limit on run creation, security headers). The only container with a published port. |
+| `web` | React UI and the API gateway (prefix routing, unbuffered SSE, rate limit on run creation, security headers). Published on localhost:8080. |
 | `orchestrator-api` | Public run API: queue, list, watch live (Server-Sent Events), cancel, resume, export, system status. |
 | `orchestrator-worker` | Executes the LangGraph pipeline; checkpoints every step in Postgres; scales horizontally. |
 | `generator` | Planner and ReAct writer (create / revise). Internal only. |
@@ -93,6 +94,7 @@ flowchart TB
 | `memory` | Long-term memory: runs, attempts (rejection logs), guidelines, feedback, versioned rubric; consolidation. |
 | `postgres`, `redis` | Durable state; job queue + replayable event streams. |
 | `migrate` | One-shot Alembic migration + rubric v1 seed, gating the memory service. |
+| `langfuse-web`, `langfuse-worker`, `clickhouse`, `minio`, `langfuse-redis` | Self-hosted Langfuse v4: every run as one trace (UI on localhost:3000). The app never depends on it. |
 
 Why split it this way - **the author is not the judge** (separate services, prompts and models),
 the orchestrator owns control flow only, knowledge is shared ground truth, memory is the single
@@ -123,6 +125,9 @@ Open **http://localhost:8080**.
 3. **Evaluator Lab** -> pick *Factual error* (or another preset) -> *Evaluate only* to watch
    the evaluator catch it, or *Evaluate + repair* to watch the loop fix it.
 4. **Memory & Learning** - the learning curve, learned guidelines and rubric proposals.
+5. **Langfuse** (http://localhost:3000, log in with `LANGFUSE_INIT_USER_EMAIL` /
+   `LANGFUSE_INIT_USER_PASSWORD` from `.env`) - every run as one trace. Each run page has a
+   *Trace in Langfuse* button.
 
 Prefer the terminal? `python scripts/lessongen.py generate --topic "Introduction to RAG"`
 streams the same events (standard library only - see [Command line](#command-line)).
@@ -145,10 +150,34 @@ Everything is configured in `.env` (see [`.env.example`](.env.example) for all o
 | `HELPER_LANGUAGE` | `Hindi` | Language of the word hints. |
 | `JUDGE_CONFIRM_FAILS` | `true` | A FAIL needs a second vote; a disputed FAIL goes to a third (strong) model. |
 | `AZURE_OPENAI_EMBEDDING_DEPLOYMENT` | empty | Optional: enables hybrid (BM25 + embeddings) search in the knowledge service. |
-| `LANGSMITH_TRACING` / `LANGSMITH_API_KEY` | off | Optional LangSmith tracing of every LangGraph/LangChain call. |
+| `LANGFUSE_PUBLIC_KEY` / `LANGFUSE_SECRET_KEY` | local defaults | Langfuse project keys. Compose creates the project with these keys on first start; the services send traces with them. |
+| `LANGFUSE_TRACING_ENABLED` | `true` | `false` runs everything without tracing. |
+| `LANGFUSE_INIT_USER_EMAIL` / `LANGFUSE_INIT_USER_PASSWORD` | `admin@example.com` / local default | Login for the Langfuse UI (sign-up is disabled). |
+| `LANGFUSE_*_SECRET`, `_SALT`, `_ENCRYPTION_KEY`, `_PASSWORD` | local defaults | Langfuse server secrets. Replace them for anything shared. |
 
 GPT-5-family models are reasoning models, so quality is controlled with `reasoning_effort` per
 role (writer `medium`, judges `low`, learner `none` ...) rather than `temperature`.
+
+## Tracing with Langfuse
+
+Every run is **one Langfuse trace** that nests across services:
+
+```
+lesson-run (session = run id)
+├─ recall_memory · plan · write · evaluate · revise · evaluate · finalize · consolidate_memory   <- orchestrator node spans
+│   └─ generator.write / evaluator.evaluate / memory.consolidate                                <- service operation spans
+│       └─ the agent's LangGraph run -> search_knowledge_base / lookup_glossary tool calls
+│           └─ every LLM generation: prompt, output, tokens, latency
+```
+
+- The trace id is derived from the run id, so every container - and a worker that resumes a
+  crashed run - writes into the same trace.
+- The orchestrator's active span travels to the services as a W3C `traceparent` header next
+  to `X-Run-ID`; the service span becomes its child.
+- LLM calls are captured by a Langfuse LangChain callback handler registered through a
+  LangChain configure hook, so agent code needs no tracing plumbing.
+- Tracing is optional and never on the critical path: spans are exported in the background,
+  and runs carry on if Langfuse is down.
 
 ## API
 
@@ -191,7 +220,7 @@ python scripts/lessongen.py status                                     # service
 ```bash
 pip install uv                                   # once
 uv sync --all-packages --all-extras              # one venv for the whole workspace
-uv run pytest                                    # 133 backend tests, no Azure needed
+uv run pytest                                    # 140 backend tests, no Azure needed
 uv run ruff check libs services && uv run ruff format --check libs services
 
 cd web && npm ci && npm test && npm run build    # frontend: vitest, strict tsc, Vite build
@@ -241,8 +270,9 @@ docs/                   architecture, rubric, demo script, final lesson and reje
 - **Learning with guardrails.** Writing guidelines evolve automatically and are retired when
   they do not help; the rubric (the quality bar) changes only via human-approved proposals.
 - **Production basics.** Correlation ids across services, structured JSON logs, per-call cost
-  tracking, durable checkpoints and job reclaiming, health/readiness probes, a fail-safe
-  evaluator, secrets kept server-side, non-root containers, one public port.
+  tracking, Langfuse traces across services, durable checkpoints and job reclaiming,
+  health/readiness probes, a fail-safe evaluator, secrets kept server-side, non-root
+  containers, only localhost ports.
 
 ## Cost
 

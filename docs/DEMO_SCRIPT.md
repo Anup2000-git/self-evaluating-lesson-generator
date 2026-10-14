@@ -12,7 +12,8 @@ Keep your camera bubble on for the whole recording.
    learning chart has a first point. (A fresh run during the video then shows "Recalled N
    guidelines" - the self-evolving part becomes visible.)
 3. Open these tabs in order so switching is instant: Studio, Evaluator Lab, Memory & Learning,
-   Rubric, the README on GitHub (architecture diagram), `docs/ARCHITECTURE.md`.
+   Rubric, Langfuse (http://localhost:3000, already logged in - credentials are in `.env`), the
+   README on GitHub (architecture diagram), `docs/ARCHITECTURE.md`.
 4. Have a terminal ready in the repo folder (for `docker compose ps` and the CLI).
 5. Close notifications. Zoom the browser to 110% so text is readable in the recording.
 
@@ -33,7 +34,8 @@ part 3 and explain the architecture while it runs; the live page catches up inst
 
 ## 2. Architecture in 3 minutes - 1:30-4:30
 
-Show the README diagram, then `docker compose ps` in the terminal (10 containers).
+Show the README diagram, then `docker compose ps` in the terminal (the app's containers plus
+the self-hosted Langfuse stack).
 
 - *"The loop itself is a LangGraph state machine - deterministic control flow. The agents live
   inside its nodes. That is how I can guarantee the loop always stops: at most 2 retries, a cost
@@ -68,6 +70,10 @@ Narrate as the run page fills in:
   example, the interactive quiz. **Rejection log** tab: what failed, why, what changed.
 - Click **Copy for Google Docs** (this is how the submission document was made) and show the cost
   in the header.
+- Click **Trace in Langfuse**: the same run as one trace - expand `write` -> `generator.write` ->
+  the writer's LangGraph run -> a `search_knowledge_base` tool call and an LLM generation with its
+  prompt, tokens and latency. *"Every container writes into the run's trace; the span context
+  travels between services in a `traceparent` header."*
 
 ## 4. The evaluator catching a deliberate error - 9:30-13:00
 
@@ -106,9 +112,9 @@ your documents every time you ask a question"*) -> **Evaluate only**.
 - Resilience (optional, impressive): start a run, then in the terminal
   `docker compose restart orchestrator-worker` - after ~30-45 seconds the run continues from its
   last LangGraph checkpoint ("Resumed from the last checkpoint" in the activity feed).
-- Mention: 133 backend tests with scripted fake LLMs (no Azure needed), strict TypeScript, CI,
-  structured logs with run ids across services, per-call cost tracking, secrets never leave the
-  backend, only one public port, non-root containers.
+- Mention: 140 backend tests with scripted fake LLMs (no Azure needed), strict TypeScript, CI,
+  structured logs with run ids across services, Langfuse traces across services, per-call cost
+  tracking, secrets never leave the backend, only localhost ports, non-root containers.
 
 ## 7. Trade-offs and close - 17:30-18:30 (face on)
 

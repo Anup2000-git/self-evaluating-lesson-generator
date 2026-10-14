@@ -170,6 +170,17 @@ export function RunPage() {
               <Icon name="refresh" /> Resume from checkpoint
             </button>
           ) : null}
+          {data?.trace_url ? (
+            <a
+              className="btn"
+              href={data.trace_url}
+              target="_blank"
+              rel="noreferrer"
+              title="Every node, agent step, tool call and LLM call of this run"
+            >
+              <Icon name="trace" /> Trace in Langfuse
+            </a>
+          ) : null}
           {finalAttempt ? (
             <>
               <button className="btn" onClick={copyForDocs}>

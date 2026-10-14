@@ -110,6 +110,10 @@ class RunRecord(BaseModel):
 
 class RunDetail(RunRecord):
     attempts: list[AttemptRecord] = Field(default_factory=list)
+    trace_url: str | None = Field(
+        default=None,
+        description="Link to the run's Langfuse trace (added by the orchestrator API when tracing is on).",
+    )
 
     def final_attempt(self) -> AttemptRecord | None:
         if self.final_attempt_no is None:

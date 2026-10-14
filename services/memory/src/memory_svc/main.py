@@ -28,6 +28,7 @@ from lessongen_common.schemas import (
     StatsResponse,
 )
 from lessongen_common.service import create_service_app
+from lessongen_common.tracing import get_tracer
 from memory_svc import __version__
 from memory_svc.consolidation import Consolidator
 from memory_svc.db import make_engine, make_session_factory, ping
@@ -107,7 +108,12 @@ async def update_guideline(guideline_id: str, body: GuidelineUpdate, request: Re
 async def consolidate(body: ConsolidationRequest, request: Request) -> ConsolidationResult:
     """Learn from a finished run (and any pending human feedback): the self-evolving step."""
     consolidator: Consolidator = request.app.state.consolidator
-    return await consolidator.consolidate(body.run_id)
+    with get_tracer().span(
+        "memory.consolidate", as_type="chain", input={"run_id": body.run_id}
+    ) as span:
+        result = await consolidator.consolidate(body.run_id)
+        span.update(output=result.model_dump(mode="json"))
+    return result
 
 
 # --------------------------------------------------------------- feedback

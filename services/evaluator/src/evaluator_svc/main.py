@@ -23,6 +23,7 @@ from lessongen_common.llm import LLMProvider
 from lessongen_common.schemas import EvaluateRequest, EvaluationReport, Lesson
 from lessongen_common.service import create_service_app
 from lessongen_common.testing.samples import sample_lesson
+from lessongen_common.tracing import get_tracer
 
 router = APIRouter(prefix="/v1")
 
@@ -31,7 +32,30 @@ router = APIRouter(prefix="/v1")
 async def evaluate(body: EvaluateRequest, request: Request) -> EvaluationReport:
     """Run every rubric check on a lesson. All must pass for the lesson to ship."""
     engine: EvaluationEngine = request.app.state.engine
-    return await engine.evaluate(body)
+    with get_tracer().span(
+        "evaluator.evaluate",
+        as_type="evaluator",
+        input={
+            "topic_id": body.topic_id,
+            "rubric_version": body.rubric_version,
+            "lesson_title": body.lesson.title,
+        },
+    ) as span:
+        report = await engine.evaluate(body)
+        span.update(
+            output={
+                "passed": report.passed,
+                "failed_check_ids": report.failed_check_ids,
+                "error_check_ids": report.error_check_ids,
+                "summary": report.summary,
+            },
+            metadata={
+                "rubric_version": report.rubric_version,
+                "cost_usd": round(report.usage.cost_usd, 4),
+                "llm_calls": report.usage.llm_calls,
+            },
+        )
+    return report
 
 
 @router.get("/faults", response_model=list[FaultInfo], tags=["evaluator lab"])

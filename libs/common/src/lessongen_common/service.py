@@ -2,7 +2,8 @@
 
 Gives each service the same production baseline: structured logging, correlation-id
 middleware, RFC 7807-style error bodies, ``/healthz`` (liveness) and ``/readyz``
-(readiness with dependency checks), optional CORS and a Redis-backed event bus.
+(readiness with dependency checks), optional CORS, a Redis-backed event bus and
+Langfuse tracing (when configured).
 """
 
 from __future__ import annotations
@@ -29,6 +30,7 @@ from lessongen_common.errors import (
 from lessongen_common.events import EventBus, configure_event_bus
 from lessongen_common.logs import configure_logging, get_logger
 from lessongen_common.settings import ServiceSettings
+from lessongen_common.tracing import configure_tracing
 
 log = get_logger(__name__)
 
@@ -126,6 +128,7 @@ def create_service_app(
                 ttl_seconds=settings.event_stream_ttl_days * 24 * 3600,
             )
         )
+        tracer = configure_tracing(name, release=version, environment=settings.environment)
         log.info("service_starting", version=version, environment=settings.environment)
         try:
             if lifespan is not None:
@@ -134,6 +137,7 @@ def create_service_app(
             else:
                 yield
         finally:
+            tracer.shutdown()  # flushes buffered spans
             configure_event_bus(None)
             if redis is not None and redis_client is None:
                 await redis.aclose()

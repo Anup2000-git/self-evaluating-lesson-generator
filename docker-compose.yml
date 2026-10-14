@@ -1,8 +1,9 @@
 # Self-Evaluating Lesson Generator - full stack.
 #   cp .env.example .env   # add your Azure OpenAI endpoint, key and deployments
 #   docker compose up --build
-#   open http://localhost:8080
-# Only the `web` gateway publishes a port; every other service is on the private network.
+#   open http://localhost:8080   (app)   and   http://localhost:3000   (Langfuse traces)
+# Only the `web` gateway and the Langfuse UI publish ports, both bound to localhost; every
+# other service is on the private network.
 
 name: lessongen
 
@@ -26,6 +27,8 @@ x-python-service: &python-service
 
 x-python-env: &python-env
   ENVIRONMENT: docker
+  # Tracing: the SDK talks to Langfuse inside the network; links in the UI use LANGFUSE_UI_URL.
+  LANGFUSE_BASE_URL: http://langfuse-web:3000
   REDIS_URL: redis://redis:6379/0
   KNOWLEDGE_URL: http://knowledge:8003
   MEMORY_URL: http://memory:8004
@@ -209,6 +212,163 @@ services:
       evaluator: { condition: service_healthy }
       orchestrator-api: { condition: service_healthy }
 
+  # -------------------------------------------- observability: self-hosted Langfuse v4
+  # Traces of every run (pipeline nodes -> agent steps -> tool calls -> LLM calls) at
+  # http://localhost:3000. The org, project, API keys and login user are created on first
+  # start from .env (headless init), so tracing works without clicking through a setup.
+  # The app never depends on it: if Langfuse is down, spans are dropped, runs carry on.
+  langfuse-worker:
+    image: docker.langfuse.com/langfuse/langfuse-worker:4.58.0
+    restart: unless-stopped
+    logging: *logging
+    environment: &langfuse-env
+      DATABASE_URL: postgresql://${POSTGRES_USER:-lessongen}:${POSTGRES_PASSWORD:-change-me-local-only}@postgres:5432/langfuse
+      NEXTAUTH_URL: ${LANGFUSE_UI_URL:-http://localhost:3000}
+      SALT: ${LANGFUSE_SALT:-change-me-local-only}
+      ENCRYPTION_KEY: ${LANGFUSE_ENCRYPTION_KEY:-0000000000000000000000000000000000000000000000000000000000000000}
+      TELEMETRY_ENABLED: "false"
+      CLICKHOUSE_MIGRATION_URL: clickhouse://clickhouse:9000
+      CLICKHOUSE_URL: http://clickhouse:8123
+      CLICKHOUSE_USER: clickhouse
+      CLICKHOUSE_PASSWORD: ${LANGFUSE_CLICKHOUSE_PASSWORD:-change-me-local-only}
+      CLICKHOUSE_CLUSTER_ENABLED: "false"
+      LANGFUSE_S3_EVENT_UPLOAD_BUCKET: langfuse
+      LANGFUSE_S3_EVENT_UPLOAD_REGION: auto
+      LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID: minio
+      LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY: ${LANGFUSE_MINIO_PASSWORD:-change-me-local-only}
+      LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT: http://minio:9000
+      LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE: "true"
+      LANGFUSE_S3_EVENT_UPLOAD_PREFIX: events/
+      LANGFUSE_S3_MEDIA_UPLOAD_BUCKET: langfuse
+      LANGFUSE_S3_MEDIA_UPLOAD_REGION: auto
+      LANGFUSE_S3_MEDIA_UPLOAD_ACCESS_KEY_ID: minio
+      LANGFUSE_S3_MEDIA_UPLOAD_SECRET_ACCESS_KEY: ${LANGFUSE_MINIO_PASSWORD:-change-me-local-only}
+      LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT: http://minio:9000
+      LANGFUSE_S3_MEDIA_UPLOAD_FORCE_PATH_STYLE: "true"
+      LANGFUSE_S3_MEDIA_UPLOAD_PREFIX: media/
+      REDIS_HOST: langfuse-redis
+      REDIS_PORT: "6379"
+      REDIS_AUTH: ${LANGFUSE_REDIS_PASSWORD:-change-me-local-only}
+      # Node sizes its heap from the container limit; Langfuse needs more than that default.
+      NODE_OPTIONS: --max-old-space-size=1024
+    depends_on: &langfuse-depends-on
+      postgres: { condition: service_healthy }
+      clickhouse: { condition: service_healthy }
+      minio: { condition: service_healthy }
+      langfuse-redis: { condition: service_healthy }
+    healthcheck:
+      # Next.js binds to the container hostname, not localhost.
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://$$HOSTNAME:3030/api/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 1536M
+    networks: [backend]
+
+  langfuse-web:
+    image: docker.langfuse.com/langfuse/langfuse:4.58.0
+    restart: unless-stopped
+    logging: *logging
+    environment:
+      <<: *langfuse-env
+      NEXTAUTH_SECRET: ${LANGFUSE_NEXTAUTH_SECRET:-change-me-local-only}
+      AUTH_DISABLE_SIGNUP: "true"
+      NODE_OPTIONS: --max-old-space-size=1536
+      LANGFUSE_INIT_ORG_ID: lessongen
+      LANGFUSE_INIT_ORG_NAME: Lesson Generator
+      LANGFUSE_INIT_PROJECT_ID: ${LANGFUSE_PROJECT_ID:-lessongen}
+      LANGFUSE_INIT_PROJECT_NAME: lesson-generator
+      LANGFUSE_INIT_PROJECT_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-pk-lf-lessongen-local}
+      LANGFUSE_INIT_PROJECT_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-sk-lf-lessongen-local}
+      LANGFUSE_INIT_USER_EMAIL: ${LANGFUSE_INIT_USER_EMAIL:-admin@example.com}
+      LANGFUSE_INIT_USER_NAME: Admin
+      LANGFUSE_INIT_USER_PASSWORD: ${LANGFUSE_INIT_USER_PASSWORD:-change-me-123}
+    ports:
+      # Bound to localhost like the app gateway.
+      - "127.0.0.1:3000:3000"
+    depends_on: *langfuse-depends-on
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://$$HOSTNAME:3000/api/public/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+    networks: [backend]
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:25.12
+    restart: unless-stopped
+    logging: *logging
+    user: "101:101"
+    environment:
+      CLICKHOUSE_DB: default
+      CLICKHOUSE_USER: clickhouse
+      CLICKHOUSE_PASSWORD: ${LANGFUSE_CLICKHOUSE_PASSWORD:-change-me-local-only}
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+      - clickhouse-logs:/var/log/clickhouse-server
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8123/ping || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+    networks: [backend]
+
+  minio:
+    # Same image as Langfuse's reference compose (MinIO no longer publishes free images).
+    image: cgr.dev/chainguard/minio:latest
+    restart: unless-stopped
+    logging: *logging
+    entrypoint: sh
+    # Creates the `langfuse` bucket before the server starts.
+    command: -c 'mkdir -p /data/langfuse && minio server --address ":9000" --console-address ":9001" /data'
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: ${LANGFUSE_MINIO_PASSWORD:-change-me-local-only}
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    networks: [backend]
+
+  langfuse-redis:
+    image: redis:7.4-alpine
+    restart: unless-stopped
+    logging: *logging
+    # Langfuse's queues (BullMQ) need noeviction; kept apart from the app's job/event Redis.
+    command: >
+      redis-server --requirepass ${LANGFUSE_REDIS_PASSWORD:-change-me-local-only}
+      --maxmemory-policy noeviction --appendonly yes
+    volumes:
+      - langfuse-redisdata:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" --no-auth-warning ping | grep -q PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    environment:
+      REDIS_PASSWORD: ${LANGFUSE_REDIS_PASSWORD:-change-me-local-only}
+    networks: [backend]
+
   # ---------------------------------------------------------- gateway + UI (public)
   web:
     image: lessongen/web:local
@@ -233,3 +393,7 @@ networks:
 volumes:
   pgdata:
   redisdata:
+  clickhouse-data:
+  clickhouse-logs:
+  minio-data:
+  langfuse-redisdata:

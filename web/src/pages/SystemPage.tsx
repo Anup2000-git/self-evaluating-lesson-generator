@@ -30,8 +30,9 @@ export function SystemPage() {
         <div>
           <h1>System</h1>
           <p className="lead">
-            Nine containers behind one gateway: orchestrator API and worker, generator, evaluator, knowledge and memory
-            services, plus Postgres and Redis. Only the gateway is exposed.
+            The app is nine containers behind one gateway: orchestrator API and worker, generator, evaluator, knowledge and
+            memory services, Postgres, Redis and nginx. A self-hosted Langfuse records every run as a trace. Only the gateway
+            and the Langfuse UI publish ports, both on localhost.
           </p>
         </div>
         <div className="page-actions">
@@ -107,6 +108,38 @@ export function SystemPage() {
             </Card>
 
             <div className="stack">
+              <Card
+                title="Tracing (Langfuse)"
+                hint="Each run is one trace: pipeline nodes → agent steps → tool calls → LLM calls."
+                footer={
+                  s.tracing.enabled && s.tracing.ui_url ? (
+                    <a className="btn" href={s.tracing.ui_url} target="_blank" rel="noreferrer">
+                      <Icon name="trace" /> Open Langfuse
+                    </a>
+                  ) : undefined
+                }
+              >
+                <div className="row">
+                  {!s.tracing.enabled ? (
+                    <span className="badge">off</span>
+                  ) : s.tracing.ok ? (
+                    <span className="badge badge-good">
+                      <Icon name="check" size={12} /> connected
+                    </span>
+                  ) : (
+                    <span className="badge badge-warning">
+                      <Icon name="alert" size={12} /> not reachable
+                    </span>
+                  )}
+                  <span className="secondary">
+                    {!s.tracing.enabled
+                      ? "Set LANGFUSE_PUBLIC_KEY / LANGFUSE_SECRET_KEY in .env to turn it on."
+                      : s.tracing.ok
+                        ? `Langfuse ${s.tracing.version ?? ""} · project ${s.tracing.project_id ?? "-"}`
+                        : `Runs are unaffected; spans are dropped until it is back. ${s.tracing.error ?? ""}`}
+                  </span>
+                </div>
+              </Card>
               <Card title="Loop policy">
                 <dl className="kv">
                   <dt>Max retries</dt>

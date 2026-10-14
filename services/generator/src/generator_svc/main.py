@@ -22,6 +22,7 @@ from lessongen_common.schemas import (
     WriteRequest,
 )
 from lessongen_common.service import create_service_app
+from lessongen_common.tracing import get_tracer
 
 router = APIRouter(prefix="/v1")
 
@@ -30,21 +31,56 @@ router = APIRouter(prefix="/v1")
 async def create_plan(body: PlanRequest, request: Request) -> PlanResponse:
     """Outline the lesson: objectives, sections in teaching order, analogy, worked example."""
     planner: Planner = request.app.state.planner
-    return await planner.plan(body)
+    with get_tracer().span(
+        "generator.plan", as_type="chain", input={"topic_id": body.context.topic_id}
+    ) as span:
+        response = await planner.plan(body)
+        span.update(output=response.plan.model_dump(mode="json"), metadata=_usage(response))
+    return response
 
 
 @router.post("/lessons", response_model=LessonResponse, tags=["generation"])
 async def write_lesson(body: WriteRequest, request: Request) -> LessonResponse:
     """Run the ReAct writer to produce a complete lesson from the plan."""
     writer: Writer = request.app.state.writer
-    return await writer.write(body)
+    with get_tracer().span(
+        "generator.write", as_type="agent", input={"topic_id": body.context.topic_id}
+    ) as span:
+        response = await writer.write(body)
+        span.update(output=response.lesson.model_dump(mode="json"), metadata=_usage(response))
+    return response
 
 
 @router.post("/lessons/revisions", response_model=LessonResponse, tags=["generation"])
 async def revise_lesson(body: ReviseRequest, request: Request) -> LessonResponse:
     """Revise a rejected lesson: fix every failed check without breaking the passed ones."""
     writer: Writer = request.app.state.writer
-    return await writer.revise(body)
+    with get_tracer().span(
+        "generator.revise",
+        as_type="agent",
+        input={
+            "strategy": body.strategy.value,
+            "failed_checks": [c.check_id for c in body.failed],
+            "passed_checks": len(body.passed_check_ids),
+        },
+    ) as span:
+        response = await writer.revise(body)
+        span.update(
+            output={
+                "revision_notes": [n.model_dump(mode="json") for n in response.revision_notes],
+                "lesson": response.lesson.model_dump(mode="json"),
+            },
+            metadata=_usage(response),
+        )
+    return response
+
+
+def _usage(response: PlanResponse | LessonResponse) -> dict[str, object]:
+    return {
+        "cost_usd": round(response.usage.cost_usd, 4),
+        "llm_calls": response.usage.llm_calls,
+        "prompt_version": response.prompt_version,
+    }
 
 
 def create_app(

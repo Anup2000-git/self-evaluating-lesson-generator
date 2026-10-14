@@ -21,6 +21,8 @@ from lessongen_common.context import bind_context
 from lessongen_common.events import EventBus, configure_event_bus
 from lessongen_common.logs import configure_logging, get_logger
 from lessongen_common.schemas import EventType, RunStatus, RunUpdate
+from lessongen_common.tracing import configure_tracing
+from orchestrator_svc import __version__
 from orchestrator_svc.graph.pipeline import Pipeline, RunCancelled, initial_state
 from orchestrator_svc.jobs import Job, JobQueue, cancel_key, lock_key
 from orchestrator_svc.settings import OrchestratorSettings
@@ -210,6 +212,9 @@ class Worker:
 async def main() -> None:
     settings = OrchestratorSettings()
     configure_logging("orchestrator-worker", settings.log_level, settings.log_json)
+    tracer = configure_tracing(
+        "orchestrator-worker", release=__version__, environment=settings.environment
+    )
     redis = Redis.from_url(
         settings.redis_url,
         socket_timeout=settings.redis_socket_timeout_seconds,
@@ -247,6 +252,7 @@ async def main() -> None:
         try:
             await worker.run_forever()
         finally:
+            tracer.shutdown()  # flushes buffered spans
             await clients.aclose()
             await redis.aclose()
 
