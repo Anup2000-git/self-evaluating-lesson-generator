@@ -106,7 +106,7 @@ your documents every time you ask a question"*) -> **Evaluate only**.
 - Resilience (optional, impressive): start a run, then in the terminal
   `docker compose restart orchestrator-worker` - after ~30-45 seconds the run continues from its
   last LangGraph checkpoint ("Resumed from the last checkpoint" in the activity feed).
-- Mention: 131 backend tests with scripted fake LLMs (no Azure needed), strict TypeScript, CI,
+- Mention: 133 backend tests with scripted fake LLMs (no Azure needed), strict TypeScript, CI,
   structured logs with run ids across services, per-call cost tracking, secrets never leave the
   backend, only one public port, non-root containers.
 

@@ -191,7 +191,7 @@ python scripts/lessongen.py status                                     # service
 ```bash
 pip install uv                                   # once
 uv sync --all-packages --all-extras              # one venv for the whole workspace
-uv run pytest                                    # 131 backend tests, no Azure needed
+uv run pytest                                    # 133 backend tests, no Azure needed
 uv run ruff check libs services && uv run ruff format --check libs services
 
 cd web && npm ci && npm test && npm run build    # frontend: vitest, strict tsc, Vite build

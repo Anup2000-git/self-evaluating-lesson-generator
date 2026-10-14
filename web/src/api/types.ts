@@ -456,4 +456,5 @@ export interface DoctorRow {
   chat: DoctorCheck;
   structured_output: DoctorCheck;
   tool_calling: DoctorCheck;
+  efforts?: Record<string, DoctorCheck>;
 }

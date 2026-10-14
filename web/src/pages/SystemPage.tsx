@@ -136,9 +136,12 @@ export function SystemPage() {
                           <strong>{row.deployment}</strong>
                           {row.ok ? <span className="badge badge-good">all good</span> : <span className="badge badge-critical">problem</span>}
                         </div>
-                        {(["chat", "structured_output", "tool_calling"] as const).map((k) => (
-                          <div key={k} className="secondary" style={{ fontSize: "0.84rem" }}>
-                            {row[k].ok ? "✓" : "✗"} {k.replace("_", " ")} · {row[k].latency_ms} ms {row[k].ok ? "" : `· ${row[k].detail}`}
+                        {[
+                          ...(["chat", "structured_output", "tool_calling"] as const).map((k) => [k.replace("_", " "), row[k]] as const),
+                          ...Object.entries(row.efforts ?? {}).map(([effort, check]) => [`reasoning effort "${effort}"`, check] as const),
+                        ].map(([label, check]) => (
+                          <div key={label} className="secondary" style={{ fontSize: "0.84rem" }}>
+                            {check.ok ? "✓" : "✗"} {label} · {check.latency_ms} ms {check.ok ? "" : `· ${check.detail}`}
                           </div>
                         ))}
                       </div>

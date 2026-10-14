@@ -83,7 +83,18 @@ async def run_doctor(provider: LLMProvider | None = None) -> list[dict[str, Any]
         ):
             ok, detail, ms = await _timed(check(model))
             row[name] = {"ok": ok, "detail": detail, "latency_ms": ms}
-        row["ok"] = all(row[k]["ok"] for k in ("chat", "structured_output", "tool_calling"))
+        # Every reasoning effort configured for this deployment must be accepted by the
+        # API version in use (e.g. "none" needs a recent one).
+        by_effort: dict[str, LLMRole] = {}
+        for role in roles:
+            by_effort.setdefault(str(provider.resolve(role).reasoning_effort or "default"), role)
+        row["efforts"] = {}
+        for effort, role in by_effort.items():
+            ok, detail, ms = await _timed(_plain(provider.get(role)))
+            row["efforts"][effort] = {"ok": ok, "detail": detail, "latency_ms": ms}
+        row["ok"] = all(
+            row[k]["ok"] for k in ("chat", "structured_output", "tool_calling")
+        ) and all(e["ok"] for e in row["efforts"].values())
         results.append(row)
     return results
 
@@ -97,10 +108,11 @@ def main() -> int:
     for row in rows:
         status = "OK  " if row["ok"] else "FAIL"
         print(f"[{status}] {row['deployment']}  roles={','.join(row['roles'])}")
-        for check in ("chat", "structured_output", "tool_calling"):
-            r = row[check]
+        checks = [(c, row[c]) for c in ("chat", "structured_output", "tool_calling")]
+        checks += [(f"effort={e}", r) for e, r in row["efforts"].items()]
+        for name, r in checks:
             print(
-                f"    {check:18s} {'ok ' if r['ok'] else 'ERR'} {r['latency_ms']:>6} ms  {r['detail']}"
+                f"    {name:18s} {'ok ' if r['ok'] else 'ERR'} {r['latency_ms']:>6} ms  {r['detail']}"
             )
     return 0 if all(r["ok"] for r in rows) else 1
 

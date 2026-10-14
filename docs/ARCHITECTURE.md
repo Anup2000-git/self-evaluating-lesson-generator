@@ -394,7 +394,7 @@ Standard deployments in October 2026.
 
 ## 11. Testing
 
-- **131 backend tests**, all offline: every LLM is a scripted fake (`lessongen_common.testing`),
+- **133 backend tests**, all offline: every LLM is a scripted fake (`lessongen_common.testing`),
   including tool-calling turns, structured outputs and failures. They cover the ReAct loop
   (research, self-correction, forced submission), judge voting and evidence re-judging, the
   fact-checker rejecting skipped claims, the learner's quote verification, every deterministic
