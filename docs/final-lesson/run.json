@@ -1,0 +1,3351 @@
+{
+  "id": "run_ed13a53166f4",
+  "topic": "Introduction to RAG",
+  "topic_id": "rag",
+  "mode": "generate",
+  "status": "shipped",
+  "status_reason": "passed all 23 checks on attempt 2",
+  "max_retries": 2,
+  "helper_language": "Hindi",
+  "attempts_count": 2,
+  "final_attempt_no": 2,
+  "rubric_version": 1,
+  "guideline_ids_applied": [
+    "G-2930f876",
+    "G-497b75cb",
+    "G-6074f213"
+  ],
+  "plan": {
+    "title": "Introduction to RAG (Retrieval-Augmented Generation)",
+    "learning_objectives": [
+      "Explain what Retrieval-Augmented Generation (RAG) means in simple words.",
+      "List the main reasons why RAG is useful for LLM answers.",
+      "Describe the five main steps of RAG: prepare, index, retrieve, augment, generate.",
+      "Explain common limits and mistakes about RAG, such as thinking it retrains the model."
+    ],
+    "analogy": "Analogy: Open-book exam in an Indian school. Mapping: The student is like the LLM because the student writes the final answer. The question paper is like the user query/question. The textbook or notes allowed in the exam are like the knowledge base. Searching the right page in the book is like retrieval. Copying the useful lines into rough work with the question is like augmentation, because extra information is added before answering. Writing the final answer in clear sentences is like generation. The page number or book name is like the source. The student’s memory does not permanently change just because they opened the book once; similarly, RAG does not permanently change the model weights.",
+    "worked_example": "Scenario: A sample college has a small knowledge base with notices. User question: “What is the last date to submit the scholarship form, and where should I submit it?” Retrieved information: Chunk 1 from Source: College Notice A: “Scholarship form submission: Students must submit the scholarship form by 15 August. Submit the form at the college office.” Chunk 2 from Source: College Notice B: “Sports day practice will start on 20 August.” Augmented prompt shown to the LLM: “Answer the question using only the information below. If the answer is not in the information, say you don’t know. Mention the source used. Information: [Source: College Notice A] Scholarship form submission: Students must submit the scholarship form by 15 August. Submit the form at the college office. [Source: College Notice B] Sports day practice will start on 20 August. Question: What is the last date to submit the scholarship form, and where should I submit it?” Final answer: “The last date to submit the scholarship form is 15 August. You should submit it at the college office. Source: College Notice A.” This example shows retrieval, augmentation, generation, and source use.",
+    "sections": [
+      {
+        "kind": "hook",
+        "heading": "Hook: Like an Open-Book Exam",
+        "key_points": [
+          "Ask the learner to imagine an open-book exam where they do not answer only from memory.",
+          "In an open-book exam, the student first finds the correct page, reads the useful lines, and then writes the answer.",
+          "RAG works in a similar way: before an AI model answers, it first gets useful information from documents.",
+          "Use only this one analogy throughout the lesson: open-book exam."
+        ],
+        "terms_to_define": [
+          "Artificial Intelligence"
+        ]
+      },
+      {
+        "kind": "what",
+        "heading": "What RAG Is",
+        "key_points": [
+          "Start with a very simple base idea: a Large Language Model is an AI model that can generate text answers.",
+          "Explain that a prompt is the text given to the model, such as instructions plus the user’s question.",
+          "Define Retrieval-Augmented Generation as a method for answering questions with an LLM.",
+          "In RAG, before the LLM answers, the system retrieves relevant pieces of information from an outside knowledge source.",
+          "The system adds those pieces of information to the prompt together with the question.",
+          "Then the LLM generates the answer using that information.",
+          "Break the name into three parts: Retrieval means finding and bringing back useful information; Augmentation means making the prompt bigger or better by adding information; Generation means creating the answer text.",
+          "Explain that a knowledge base is the outside collection of documents that RAG searches.",
+          "Use the open-book exam mapping: textbook/notes = knowledge base, finding useful page = retrieval, adding useful lines to the question = augmentation, writing final answer = generation."
+        ],
+        "terms_to_define": [
+          "Large Language Model",
+          "Retrieval-Augmented Generation",
+          "Retrieval",
+          "Augmentation",
+          "Generation",
+          "Prompt",
+          "Knowledge base"
+        ]
+      },
+      {
+        "kind": "why",
+        "heading": "Why RAG Matters",
+        "key_points": [
+          "Explain knowledge cutoff: an LLM’s training data was collected only up to a certain date, so by itself it may not know recent notices, rules, prices, or scores.",
+          "Explain training data: the data used earlier to train the model.",
+          "RAG helps with updated information because it searches the knowledge base when the question is asked.",
+          "Explain hallucination: sometimes an LLM gives a fluent, confident answer that is false or made up.",
+          "RAG reduces hallucination because the model receives real, relevant text to answer from, but it does not remove hallucination completely.",
+          "Explain private or specific data: a general LLM did not see a company policy, hospital record, school timetable, college notice, or product manual unless that was in its training data.",
+          "RAG lets the model use such documents at answer time without retraining and without permanently learning them.",
+          "Explain trust: because RAG uses specific retrieved documents, the answer can show sources, so users can check them.",
+          "Explain cheaper and faster updates: changing documents in the knowledge base is usually cheaper and faster than retraining or fine-tuning a model."
+        ],
+        "terms_to_define": [
+          "Knowledge cutoff",
+          "Training data",
+          "Hallucination",
+          "Source",
+          "Fine-tuning"
+        ]
+      },
+      {
+        "kind": "how",
+        "heading": "How RAG Works Step by Step",
+        "key_points": [
+          "Step 1: Prepare the knowledge. Collect useful documents such as web pages, PDF files, notices, manuals, policies, or articles.",
+          "Split long documents into small pieces called chunks, usually a few sentences to a few paragraphs long.",
+          "Small chunks help the system send only the most relevant parts of a long document to the model.",
+          "Some systems split by fixed number of tokens or characters; better systems split at natural boundaries like headings, paragraphs, or sentences.",
+          "Define token simply as a small piece of text used by the system.",
+          "Step 2: Index the chunks. Indexing means storing chunks in a way that makes them quick to search.",
+          "In a common method, each chunk is changed into an embedding: a list of numbers that represents meaning.",
+          "A vector is this kind of number list, and a vector database stores many embeddings with their text.",
+          "Some systems also use a keyword index, which finds chunks containing the same words as the question.",
+          "Step 3: Retrieve. When a user asks a question, the retriever searches the index for the most relevant chunks.",
+          "The user’s question can also be called a query.",
+          "With embeddings, the system compares the question embedding with stored chunk embeddings and finds the closest ones. This is similarity search.",
+          "Top-k means the system returns a small number of best-matching chunks, often between 3 and 10.",
+          "Step 4: Augment. Add the retrieved chunks to the prompt along with the user question and instructions.",
+          "Example instruction: answer only using the information provided, say ‘I don’t know’ if the answer is not there, and mention the source used.",
+          "Step 5: Generate. The LLM reads the whole augmented prompt and writes the answer using the retrieved chunks as main evidence.",
+          "Explain that in all these steps, the LLM’s model weights stay the same; RAG changes the prompt for one question, not the model itself.",
+          "Mention context window: there is a limit to how much retrieved text can be added to the prompt."
+        ],
+        "terms_to_define": [
+          "Chunk",
+          "Token",
+          "Index",
+          "Embedding",
+          "Vector",
+          "Vector database",
+          "Keyword search",
+          "Retriever",
+          "Query",
+          "Similarity search",
+          "Top-k",
+          "Context window",
+          "Model weights"
+        ]
+      },
+      {
+        "kind": "example",
+        "heading": "Worked Example: College Scholarship Notice",
+        "key_points": [
+          "Set up a sample knowledge base with college notices, like the book/notes in the open-book exam analogy.",
+          "User asks the exact question: “What is the last date to submit the scholarship form, and where should I submit it?”",
+          "Prepare knowledge: the system has notices split into chunks, including Chunk 1 from College Notice A and Chunk 2 from College Notice B.",
+          "Retrieved Chunk 1: “Scholarship form submission: Students must submit the scholarship form by 15 August. Submit the form at the college office.”",
+          "Retrieved Chunk 2: “Sports day practice will start on 20 August.”",
+          "Show that Chunk 1 is relevant to the scholarship question; Chunk 2 is less relevant but may have been retrieved too.",
+          "Augment by building the prompt with instructions, retrieved chunks, and the user question.",
+          "Use this augmented prompt: “Answer the question using only the information below. If the answer is not in the information, say you don’t know. Mention the source used. Information: [Source: College Notice A] Scholarship form submission: Students must submit the scholarship form by 15 August. Submit the form at the college office. [Source: College Notice B] Sports day practice will start on 20 August. Question: What is the last date to submit the scholarship form, and where should I submit it?”",
+          "Generate the final answer: “The last date to submit the scholarship form is 15 August. You should submit it at the college office. Source: College Notice A.”",
+          "Point out which part came from which source, so the learner sees how trust is built."
+        ],
+        "terms_to_define": []
+      },
+      {
+        "kind": "misconceptions",
+        "heading": "Common Misconceptions and Limits",
+        "key_points": [
+          "Misconception 1: RAG retrains or permanently changes the model. Correct idea: false. Retrieved information is used only for that one answer; model weights do not change.",
+          "Misconception 2: RAG always gives correct answers. Correct idea: false. If the wrong chunks are retrieved, or documents are wrong or old, the answer can still be wrong.",
+          "Misconception 3: RAG is the same as fine-tuning. Correct idea: false. Fine-tuning changes the model itself; RAG only adds information to the prompt.",
+          "Misconception 4: Retrieving more text is always better. Correct idea: false. Irrelevant text can confuse the model, and the context window is limited.",
+          "Limit 1: Answer quality depends on retrieval quality. Wrong information in can lead to wrong answer out.",
+          "Limit 2: The knowledge base must be maintained. New documents must be added and old or wrong documents updated or removed.",
+          "Limit 3: The context window limits how much retrieved text can be added to the prompt.",
+          "Limit 4: The extra search step adds time and cost.",
+          "Limit 5: The model can still hallucinate or ignore the retrieved text."
+        ],
+        "terms_to_define": []
+      },
+      {
+        "kind": "summary",
+        "heading": "Summary",
+        "key_points": [
+          "RAG means retrieve, augment, generate.",
+          "It is like an open-book exam: find the right information first, add it to the question, then write the answer.",
+          "RAG helps when information is recent, private, specific, or needs sources.",
+          "The five main steps are: prepare knowledge, index chunks, retrieve relevant chunks, augment the prompt, and generate the answer.",
+          "RAG does not retrain the LLM or permanently change model weights.",
+          "RAG improves answers, but it does not guarantee correctness; the knowledge base and retrieval quality are very important."
+        ],
+        "terms_to_define": []
+      }
+    ],
+    "glossary_terms": [
+      "Artificial Intelligence: computer systems doing tasks that seem intelligent. Hindi hint: कृत्रिम बुद्धिमत्ता.",
+      "Large Language Model: an AI model that can generate text answers. Hindi hint: बड़ा भाषा मॉडल.",
+      "Retrieval-Augmented Generation: a method where the system first finds useful outside information, adds it to the prompt, and then the LLM writes the answer. Hindi hint: खोजकर जोड़ी गई जानकारी से उत्तर बनाना.",
+      "Retrieval: finding and bringing back relevant information. Hindi hint: खोजकर लाना.",
+      "Augmentation: making the prompt bigger or better by adding useful information. Hindi hint: जोड़कर बेहतर बनाना.",
+      "Generation: creating new text, such as the final answer. Hindi hint: उत्तर बनाना.",
+      "Prompt: the text given to the model, including instructions and the question. Hindi hint: मॉडल को दिया गया सवाल/निर्देश.",
+      "Knowledge base: the outside collection of documents that RAG searches. Hindi hint: जानकारी का भंडार.",
+      "Knowledge cutoff: the date up to which the model’s training data was collected. Hindi hint: जानकारी की अंतिम तारीख.",
+      "Training data: the data used to train the model earlier. Hindi hint: सीखने का डेटा.",
+      "Hallucination: a fluent answer that sounds correct but is false or made up. Hindi hint: गलत बात को सही जैसे बोलना.",
+      "Source: the document, page, or notice where the information came from. Hindi hint: जानकारी का स्रोत.",
+      "Fine-tuning: training that changes the model itself for a style, format, or behaviour. Hindi hint: मॉडल को फिर से खास तरह से सिखाना.",
+      "Chunk: a small piece of a document, usually a few sentences to a few paragraphs. Hindi hint: छोटा हिस्सा.",
+      "Token: a small piece of text used by the system. Hindi hint: टेक्स्ट का छोटा टुकड़ा.",
+      "Index: stored structure that helps search chunks quickly. Hindi hint: जल्दी खोजने की सूची.",
+      "Embedding: a list of numbers that represents the meaning of a chunk or question. Hindi hint: अर्थ को नंबरों में बदलना.",
+      "Vector: a list of numbers. Hindi hint: नंबरों की सूची.",
+      "Vector database: a system that stores embeddings and quickly finds similar ones. Hindi hint: नंबर-सूची वाला डेटाबेस.",
+      "Keyword search: search that finds chunks with the same words as the question. Hindi hint: शब्दों से खोज.",
+      "Retriever: the part of the system that searches and returns relevant chunks. Hindi hint: खोजकर लाने वाला हिस्सा.",
+      "Query: the user’s question given for search. Hindi hint: पूछा गया सवाल.",
+      "Similarity search: search that finds chunks whose meanings are closest to the question. Hindi hint: मिलते-जुलते अर्थ की खोज.",
+      "Top-k: the small number of best-matching chunks returned by the retriever, often between 3 and 10. Hindi hint: सबसे अच्छे k परिणाम.",
+      "Context window: the limit on how much text can be added to the prompt. Hindi hint: prompt में आने वाली टेक्स्ट सीमा.",
+      "Model weights: the internal values of the model that are changed by training, not by RAG. Hindi hint: मॉडल के अंदर की सीखी हुई वैल्यू."
+    ],
+    "quiz_focus": [
+      "Meaning of RAG as retrieve, augment, generate.",
+      "Why RAG helps with knowledge cutoff, hallucination, private documents, trust, and cheaper updates.",
+      "Correct order of RAG steps: prepare knowledge, index, retrieve, augment, generate.",
+      "Difference between RAG and fine-tuning: RAG adds information to the prompt; fine-tuning changes the model.",
+      "Limits of RAG: wrong retrieval, outdated documents, context window, extra time/cost, possible hallucination."
+    ]
+  },
+  "usage": {
+    "llm_calls": 46,
+    "input_tokens": 208493,
+    "cached_input_tokens": 87296,
+    "output_tokens": 30531,
+    "reasoning_tokens": 5760,
+    "cost_usd": 0.740581,
+    "by_model": {
+      "gpt-5.5": {
+        "llm_calls": 8,
+        "input_tokens": 53816,
+        "cached_input_tokens": 29440,
+        "output_tokens": 15280,
+        "reasoning_tokens": 2278,
+        "cost_usd": 0.595
+      },
+      "gpt-5.4-mini": {
+        "llm_calls": 38,
+        "input_tokens": 154677,
+        "cached_input_tokens": 57856,
+        "output_tokens": 15251,
+        "reasoning_tokens": 3482,
+        "cost_usd": 0.145581
+      }
+    }
+  },
+  "fault_id": null,
+  "source_run_id": null,
+  "error": null,
+  "created_at": "2026-10-14T05:49:10.627196Z",
+  "started_at": "2026-10-14T05:49:10.678853Z",
+  "finished_at": "2026-10-14T05:52:38.109957Z",
+  "attempts": [
+    {
+      "attempt_no": 1,
+      "kind": "initial",
+      "lesson": {
+        "title": "Introduction to RAG (Retrieval-Augmented Generation)",
+        "learning_objectives": [
+          "Explain what Retrieval-Augmented Generation (RAG) means in simple words.",
+          "List the main reasons why RAG is useful for LLM answers.",
+          "Describe the five main steps of RAG: prepare, index, retrieve, augment, generate.",
+          "Explain common limits and mistakes about RAG, such as thinking it retrains the model."
+        ],
+        "sections": [
+          {
+            "kind": "hook",
+            "heading": "Hook: Like an Open-Book Exam",
+            "body_markdown": "Imagine an open-book exam in your school. You do not answer only from memory. You read the question. Then you find the right page in your book. You copy useful lines in rough work. Then you write the final answer.\n\n**Artificial Intelligence** [कृत्रिम बुद्धि] means computer programs that do tasks needing human thinking. **Retrieval-Augmented Generation** [जानकारी खोजकर, उसे जोड़कर जवाब बनाने का तरीका] is similar to that exam. The AI does not answer only from memory. It first finds useful information from documents. Then it uses that information to write the answer.\n\nHere is the map. The student is like the AI model. The question paper is like your question. The textbook is like the documents. Finding the right page is **retrieval**. Adding useful lines to rough work is **augmentation**. Writing the final answer is **generation**. The page or book name is the **source**."
+          },
+          {
+            "kind": "what",
+            "heading": "What RAG Is",
+            "body_markdown": "A **Large Language Model** [बड़ा भाषा मॉडल], or LLM, is an AI model that can understand and write language. A **prompt** [मॉडल को दिया गया सवाल और निर्देश] is the text given to the model. It can include instructions and your question.\n\n**Retrieval** [खोजकर लाना] means finding useful information and bringing it back. **Augmentation** [कुछ जोड़कर बढ़ाना] means adding useful information to make the prompt better. **Generation** [बनाना, रचना] means creating new text, like an answer.\n\nSo, RAG has a simple meaning. Before the LLM answers, the system finds useful outside information. It adds that information to the prompt with your question. Then the LLM writes the answer using that information.\n\nA **knowledge base** [जानकारी का भंडार] is the document collection that RAG searches. It can contain web pages, college notices, policies, manuals, or articles. It is separate from the LLM. You can update it without changing the model.\n\nIn the exam map, the textbook is the knowledge base. Finding the page is retrieval. Adding lines to the question is augmentation. Writing the answer is generation."
+          },
+          {
+            "kind": "why",
+            "heading": "Why RAG Matters",
+            "body_markdown": "First, RAG helps with new information. **Training data** [प्रशिक्षण डेटा] is the text an AI model learned from. A **knowledge cutoff** [जानकारी की आखिरी तारीख] is the last date of that learned information. By itself, an LLM may not know a notice published after that date. The result can be a wrong answer about a new rule.\n\nRAG can search the knowledge base when you ask. If the knowledge base is updated, the answer can use current text. For example, a college can add a new exam notice. Then students can ask about it.\n\nSecond, RAG helps reduce **hallucination** [मनगढ़ंत जवाब]. Hallucination means an AI gives a false answer that sounds correct. This can mislead a student about a deadline. RAG gives the LLM real text to use. This reduces the chance of a made-up answer. It does not remove the risk fully.\n\nThird, RAG helps with private or specific documents. A general LLM may not have your school timetable or shop return policy. With RAG, those documents can be searched at answer time. The LLM does not permanently learn them.\n\nFourth, RAG can build trust. A **source** [स्रोत] is the place where information came from. A RAG answer can show the source. Then you can check the notice yourself.\n\nFifth, updates can be easier. **Fine-tuning** [मॉडल को दोबारा सिखाना] means training a model again so the model itself changes. Adding documents to a knowledge base is usually cheaper and faster than fine-tuning or retraining."
+          },
+          {
+            "kind": "how",
+            "heading": "How RAG Works Step by Step",
+            "body_markdown": "RAG has five main steps.\n\nStep 1 is prepare the knowledge. The system collects useful documents. It may collect web pages, files, notices, manuals, policies, or articles. Long documents are split into chunks. A **chunk** [टुकड़ा] is a small piece of a long document. It is often a few sentences or paragraphs. Small chunks help send only useful parts to the LLM.\n\nSome systems split text by **tokens**. A **token** [शब्द का छोटा टुकड़ा] is a small piece of text an LLM reads. Some systems split by characters. Better systems often split at headings, paragraphs, or sentences.\n\nStep 2 is index the chunks. An **index** [खोजने के लिए बनी सूची] is an organised store that makes search fast. In a common method, each chunk becomes an **embedding**. An **embedding** [अर्थ बताने वाली संख्याओं की सूची] is a list of numbers that shows meaning. A **vector** [संख्याओं की सूची] is a list of numbers. A **vector database** [संख्याओं की सूचियों का डेटाबेस] stores embeddings with their text. Some systems also use **keyword search**. **Keyword search** [शब्दों से खोज] finds text with the same words as the question.\n\nStep 3 is retrieve. A **retriever** [खोजकर लाने वाला हिस्सा] is the part that searches and returns chunks. A **query** [सवाल या खोज] is your question for search. With embeddings, the query also becomes an embedding. **Similarity search** [मिलती-जुलती चीज़ खोजना] finds chunks closest in meaning to the query. **Top-k** [सबसे मिलते-जुलते कुछ नतीजे] means the best matching chunks returned. Often, this is between 3 and 10 chunks.\n\nStep 4 is augment. The system adds the retrieved chunks to the prompt. It also adds your question and instructions. One instruction can say, “Use only the given information.” Another can say, “Say you do not know if it is not there.”\n\nStep 5 is generate. The LLM reads the full augmented prompt. It writes the answer using the retrieved chunks. It can also mention the source.\n\nThe model itself does not change in these steps. **Model weights** [मॉडल के अंदर सीखी हुई संख्याएँ] are numbers inside the model that store what it learned. RAG does not retrain the LLM. It only changes the prompt for one question.\n\nThere is one more limit here. A **context window** [एक बार में पढ़ने की सीमा] is how much text an LLM can read at one time. Too much retrieved text may not fit. Extra unrelated text can also distract the model."
+          },
+          {
+            "kind": "example",
+            "heading": "Worked Example: College Scholarship Notice",
+            "body_markdown": "Let us use a sample college knowledge base. It is like the textbook in the open-book exam.\n\nUser question: “What is the last date to submit the scholarship form, and where should I submit it?”\n\nStep 1, prepare. The system has college notices split into chunks.\n\nChunk 1 is from Source: College Notice A.\n\n“Scholarship form submission: Students must submit the scholarship form by 15 August. Submit the form at the college office.”\n\nChunk 2 is from Source: College Notice B.\n\n“Sports day practice will start on 20 August.”\n\nStep 2, index. The system stores these chunks for fast search. It may store embeddings for their meanings.\n\nStep 3, retrieve. The retriever searches for the user question. Chunk 1 matches the scholarship question. Chunk 2 is less useful, but it may also be returned.\n\nStep 4, augment. The system builds this prompt for the LLM:\n\n“Answer the question using only the information below.\nIf the answer is not in the information, say you don’t know.\nMention the source used.\nInformation:\n[Source: College Notice A]\nScholarship form submission: Students must submit the scholarship form by 15 August.\nSubmit the form at the college office.\n[Source: College Notice B]\nSports day practice will start on 20 August.\nQuestion: What is the last date to submit the scholarship form, and where should I submit it?”\n\nStep 5, generate. The LLM writes the final answer:\n\n“The last date to submit the scholarship form is 15 August. You should submit it at the college office. Source: College Notice A.”\n\nNotice how the answer uses College Notice A. It ignores the sports day line. You can check the source if needed."
+          },
+          {
+            "kind": "misconceptions",
+            "heading": "Common Misconceptions and Limits",
+            "body_markdown": "Misconception 1: RAG retrains the model. This is false. RAG uses found information only for that one answer. Model weights do not change.\n\nMisconception 2: RAG is the same as fine-tuning. This is false. Fine-tuning changes the model itself. RAG only adds information to the prompt.\n\nMisconception 3: RAG always gives correct answers. This is false. Wrong chunks can be retrieved. Documents can also be old or wrong. Then the answer can still be wrong.\n\nMisconception 4: More text is always better. This is false. The context window is limited. Unrelated text can confuse the model.\n\nRAG has limits. Answer quality depends on retrieval quality. The knowledge base must be maintained. New documents must be added. Old or wrong documents should be updated or removed. The extra search step can add time and cost. The model can still hallucinate or ignore the retrieved text."
+          },
+          {
+            "kind": "summary",
+            "heading": "Summary",
+            "body_markdown": "RAG means retrieve, augment, and generate. It is like an open-book exam. You find the right information first. You add it with the question. Then the answer is written.\n\nRAG helps with new, private, and specific information. It can reduce hallucination. It can show sources for checking. Its five steps are prepare, index, retrieve, augment, and generate.\n\nRAG does not retrain the LLM. It does not permanently change model weights. It improves answers, but it does not guarantee correctness. The knowledge base and retrieval quality matter a lot."
+          }
+        ],
+        "glossary": [
+          {
+            "term": "Artificial Intelligence",
+            "simple_meaning": "Computer programs that can do tasks that normally need human thinking.",
+            "helper_meaning": "कृत्रिम बुद्धि"
+          },
+          {
+            "term": "Retrieval-Augmented Generation",
+            "simple_meaning": "A method where the system first finds useful information, adds it to the prompt, and then the AI writes an answer.",
+            "helper_meaning": "जानकारी खोजकर, उसे जोड़कर जवाब बनाने का तरीका"
+          },
+          {
+            "term": "Large Language Model",
+            "simple_meaning": "An AI model that can understand and write language.",
+            "helper_meaning": "बड़ा भाषा मॉडल"
+          },
+          {
+            "term": "Retrieval",
+            "simple_meaning": "Finding useful information and bringing it back.",
+            "helper_meaning": "खोजकर लाना"
+          },
+          {
+            "term": "Augmentation",
+            "simple_meaning": "Making something better by adding useful information to it.",
+            "helper_meaning": "कुछ जोड़कर बढ़ाना"
+          },
+          {
+            "term": "Generation",
+            "simple_meaning": "Creating new text, such as an answer.",
+            "helper_meaning": "बनाना, रचना"
+          },
+          {
+            "term": "Prompt",
+            "simple_meaning": "The text given to an AI model, with instructions and a question.",
+            "helper_meaning": "मॉडल को दिया गया सवाल और निर्देश"
+          },
+          {
+            "term": "Knowledge base",
+            "simple_meaning": "A collection of documents that a system can search.",
+            "helper_meaning": "जानकारी का भंडार"
+          },
+          {
+            "term": "Training data",
+            "simple_meaning": "The text an AI model learned from.",
+            "helper_meaning": "प्रशिक्षण डेटा"
+          },
+          {
+            "term": "Knowledge cutoff",
+            "simple_meaning": "The last date of the information an LLM learned from.",
+            "helper_meaning": "जानकारी की आखिरी तारीख"
+          },
+          {
+            "term": "Hallucination",
+            "simple_meaning": "A false AI answer that sounds correct.",
+            "helper_meaning": "मनगढ़ंत जवाब"
+          },
+          {
+            "term": "Source",
+            "simple_meaning": "The place where a piece of information comes from.",
+            "helper_meaning": "स्रोत"
+          },
+          {
+            "term": "Fine-tuning",
+            "simple_meaning": "Training a model again on new examples so the model itself changes.",
+            "helper_meaning": "मॉडल को दोबारा सिखाना"
+          },
+          {
+            "term": "Chunk",
+            "simple_meaning": "A small piece of a long document.",
+            "helper_meaning": "टुकड़ा"
+          },
+          {
+            "term": "Token",
+            "simple_meaning": "A small piece of text that an LLM reads and writes.",
+            "helper_meaning": "शब्द का छोटा टुकड़ा"
+          },
+          {
+            "term": "Index",
+            "simple_meaning": "An organised store that makes searching fast.",
+            "helper_meaning": "खोजने के लिए बनी सूची"
+          },
+          {
+            "term": "Embedding",
+            "simple_meaning": "A list of numbers that shows the meaning of text.",
+            "helper_meaning": "अर्थ बताने वाली संख्याओं की सूची"
+          },
+          {
+            "term": "Vector",
+            "simple_meaning": "A list of numbers.",
+            "helper_meaning": "संख्याओं की सूची"
+          },
+          {
+            "term": "Vector database",
+            "simple_meaning": "A store that keeps embeddings and quickly finds similar ones.",
+            "helper_meaning": "संख्याओं की सूचियों का डेटाबेस"
+          },
+          {
+            "term": "Keyword search",
+            "simple_meaning": "Search that finds text with the same words as the question.",
+            "helper_meaning": "शब्दों से खोज"
+          },
+          {
+            "term": "Retriever",
+            "simple_meaning": "The part of a RAG system that searches and returns useful chunks.",
+            "helper_meaning": "खोजकर लाने वाला हिस्सा"
+          },
+          {
+            "term": "Query",
+            "simple_meaning": "A question or search request given to a system.",
+            "helper_meaning": "सवाल या खोज"
+          },
+          {
+            "term": "Similarity search",
+            "simple_meaning": "Search that finds text closest in meaning to the question.",
+            "helper_meaning": "मिलती-जुलती चीज़ खोजना"
+          },
+          {
+            "term": "Top-k",
+            "simple_meaning": "The best matching chunks returned by the retriever.",
+            "helper_meaning": "सबसे मिलते-जुलते कुछ नतीजे"
+          },
+          {
+            "term": "Model weights",
+            "simple_meaning": "The numbers inside a model that store what it learned.",
+            "helper_meaning": "मॉडल के अंदर सीखी हुई संख्याएँ"
+          },
+          {
+            "term": "Context window",
+            "simple_meaning": "The amount of text an LLM can read at one time.",
+            "helper_meaning": "एक बार में पढ़ने की सीमा"
+          }
+        ],
+        "quiz": [
+          {
+            "question": "What does RAG do before the LLM writes an answer?",
+            "options": [
+              "It deletes the question.",
+              "It finds useful outside information and adds it to the prompt.",
+              "It permanently changes the model weights.",
+              "It stops the LLM from writing."
+            ],
+            "correct_option_index": 1,
+            "explanation": "RAG first retrieves useful information, augments the prompt with it, and then generates an answer."
+          },
+          {
+            "question": "What is the correct order of the five main RAG steps?",
+            "options": [
+              "Generate, retrieve, index, prepare, augment",
+              "Prepare, index, retrieve, augment, generate",
+              "Index, generate, prepare, retrieve, augment",
+              "Retrieve, generate, prepare, augment, index"
+            ],
+            "correct_option_index": 1,
+            "explanation": "The lesson teaches this order: prepare knowledge, index chunks, retrieve chunks, augment the prompt, and generate."
+          },
+          {
+            "question": "Why can RAG help with a new college notice?",
+            "options": [
+              "It searches an updated knowledge base when you ask.",
+              "It guesses the notice from memory.",
+              "It removes the context window.",
+              "It always retrains the LLM."
+            ],
+            "correct_option_index": 0,
+            "explanation": "RAG can use current text if the knowledge base has been updated with the new notice."
+          },
+          {
+            "question": "Which statement about RAG and fine-tuning is correct?",
+            "options": [
+              "Both always change model weights.",
+              "RAG changes the prompt, while fine-tuning changes the model itself.",
+              "RAG is another name for fine-tuning.",
+              "Fine-tuning only searches documents."
+            ],
+            "correct_option_index": 1,
+            "explanation": "RAG adds found information to the prompt for one question. Fine-tuning changes the model itself."
+          },
+          {
+            "question": "Which is a real limit of RAG?",
+            "options": [
+              "It cannot show sources.",
+              "It has no need for documents.",
+              "Wrong or old documents can lead to wrong answers.",
+              "It always removes hallucination fully."
+            ],
+            "correct_option_index": 2,
+            "explanation": "RAG depends on the knowledge base and retrieval quality. Wrong or old documents can still cause wrong answers."
+          }
+        ]
+      },
+      "evaluation": {
+        "rubric_version": 1,
+        "passed": false,
+        "results": [
+          {
+            "check_id": "ACC-1",
+            "dimension": "accuracy",
+            "title": "No false statements",
+            "method": "fact_check",
+            "severity": "critical",
+            "verdict": "PASS",
+            "reasoning": "None of the 29 checked claims is contradicted by the knowledge base.",
+            "evidence": [],
+            "fix_instruction": "",
+            "details": {
+              "claims": [
+                {
+                  "id": "C2",
+                  "kind": "concept",
+                  "claim": "Artificial intelligence refers to computer programs that do tasks requiring human thinking.",
+                  "quote": "Artificial Intelligence [कृत्रिम बुद्धि] means computer programs that do tasks needing human thinking.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says AI means computer programs that do tasks that normally need human thinking.",
+                  "kb_chunk_ids": [
+                    "rag/01-llm-basics#what-a-large-language-model-is"
+                  ]
+                },
+                {
+                  "id": "C3",
+                  "kind": "concept",
+                  "claim": "A large language model is an AI model that can understand and write language.",
+                  "quote": "A Large Language Model [बड़ा भाषा मॉडल], or LLM, is an AI model that can understand and write language.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says an LLM can understand a question and write a new answer, so it can understand and write language.",
+                  "kb_chunk_ids": [
+                    "rag/01-llm-basics#what-a-large-language-model-is"
+                  ]
+                },
+                {
+                  "id": "C4",
+                  "kind": "concept",
+                  "claim": "Retrieval means finding useful information and bringing it back.",
+                  "quote": "Retrieval [खोजकर लाना] means finding useful information and bringing it back.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says retrieval means finding and bringing back relevant information.",
+                  "kb_chunk_ids": [
+                    "rag/02-what-is-rag#meaning-of-the-name"
+                  ]
+                },
+                {
+                  "id": "C5",
+                  "kind": "concept",
+                  "claim": "Augmentation means adding useful information to improve the prompt.",
+                  "quote": "Augmentation [कुछ जोड़कर बढ़ाना] means adding useful information to make the prompt better.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says the prompt is augmented by adding the retrieved information to make it better.",
+                  "kb_chunk_ids": [
+                    "rag/02-what-is-rag#meaning-of-the-name",
+                    "rag/04-how-rag-works#phase-2-step-4-augment"
+                  ]
+                },
+                {
+                  "id": "C6",
+                  "kind": "concept",
+                  "claim": "Generation means creating new text such as an answer.",
+                  "quote": "Generation [बनाना, रचना] means creating new text, like an answer.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says generation means creating new text, and the LLM generates the answer.",
+                  "kb_chunk_ids": [
+                    "rag/02-what-is-rag#meaning-of-the-name"
+                  ]
+                },
+                {
+                  "id": "C7",
+                  "kind": "concept",
+                  "claim": "RAG means finding useful outside information, adding it to the prompt, and then having the LLM write the answer.",
+                  "quote": "So, RAG has a simple meaning.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says RAG retrieves information, adds it to the prompt, and the LLM generates the answer from the augmented prompt.",
+                  "kb_chunk_ids": [
+                    "rag/02-what-is-rag#meaning-of-the-name",
+                    "rag/04-how-rag-works#phase-2-step-4-augment",
+                    "rag/04-how-rag-works#phase-2-step-5-generate"
+                  ]
+                },
+                {
+                  "id": "C8",
+                  "kind": "concept",
+                  "claim": "A knowledge base is the document collection that RAG searches.",
+                  "quote": "A knowledge base [जानकारी का भंडार] is the document collection that RAG searches.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says the outside knowledge source that RAG searches is called a knowledge base and it is a collection of documents.",
+                  "kb_chunk_ids": [
+                    "rag/02-what-is-rag#the-knowledge-base"
+                  ]
+                },
+                {
+                  "id": "C9",
+                  "kind": "concept",
+                  "claim": "The knowledge base is separate from the LLM.",
+                  "quote": "It is separate from the LLM.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says the knowledge base is separate from the LLM.",
+                  "kb_chunk_ids": [
+                    "rag/02-what-is-rag#the-knowledge-base"
+                  ]
+                },
+                {
+                  "id": "C10",
+                  "kind": "concept",
+                  "claim": "The knowledge base can be updated without changing the model.",
+                  "quote": "You can update it without changing the model.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says it can be changed or updated without changing the model.",
+                  "kb_chunk_ids": [
+                    "rag/02-what-is-rag#the-knowledge-base"
+                  ]
+                },
+                {
+                  "id": "C11",
+                  "kind": "concept",
+                  "claim": "An LLM may not know information published after its knowledge cutoff.",
+                  "quote": "By itself, an LLM may not know a notice published after that date.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says an LLM on its own does not know about events, prices, rules, or documents that appeared after its knowledge cutoff.",
+                  "kb_chunk_ids": [
+                    "rag/01-llm-basics#knowledge-cutoff"
+                  ]
+                },
+                {
+                  "id": "C12",
+                  "kind": "concept",
+                  "claim": "RAG searches the knowledge base at question time.",
+                  "quote": "RAG can search the knowledge base when you ask.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says RAG addresses outdated knowledge by searching a knowledge base at the moment the question is asked.",
+                  "kb_chunk_ids": [
+                    "rag/03-why-rag#problem-1-outdated-knowledge-knowledge-cutoff"
+                  ]
+                },
+                {
+                  "id": "C13",
+                  "kind": "concept",
+                  "claim": "If the knowledge base is updated, RAG can use current text in its answers.",
+                  "quote": "If the knowledge base is updated, the answer can use current text.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says if the knowledge base is kept up to date, the model can answer using current information.",
+                  "kb_chunk_ids": [
+                    "rag/03-why-rag#problem-1-outdated-knowledge-knowledge-cutoff"
+                  ]
+                },
+                {
+                  "id": "C14",
+                  "kind": "concept",
+                  "claim": "Hallucination is when an AI gives a false answer that sounds correct.",
+                  "quote": "Hallucination means an AI gives a false answer that sounds correct.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says hallucination is when an LLM gives an answer that sounds fluent and confident but is false or made up.",
+                  "kb_chunk_ids": [
+                    "rag/01-llm-basics#hallucination"
+                  ]
+                },
+                {
+                  "id": "C15",
+                  "kind": "concept",
+                  "claim": "RAG provides real text to the LLM for answering.",
+                  "quote": "RAG gives the LLM real text to use.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says the relevant information is right there in the prompt, so the model can base its answer on it.",
+                  "kb_chunk_ids": [
+                    "rag/04-how-rag-works#phase-2-step-5-generate"
+                  ]
+                },
+                {
+                  "id": "C16",
+                  "kind": "concept",
+                  "claim": "RAG reduces the chance of made-up answers.",
+                  "quote": "This reduces the chance of a made-up answer.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says giving the model relevant, reliable text reduces hallucination.",
+                  "kb_chunk_ids": [
+                    "rag/03-why-rag#problem-2-hallucination"
+                  ]
+                },
+                {
+                  "id": "C17",
+                  "kind": "concept",
+                  "claim": "RAG does not fully remove the risk of wrong answers.",
+                  "quote": "It does not remove the risk fully.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says RAG reduces hallucination but does not remove it completely.",
+                  "kb_chunk_ids": [
+                    "rag/03-why-rag#problem-2-hallucination"
+                  ]
+                },
+                {
+                  "id": "C18",
+                  "kind": "concept",
+                  "claim": "RAG can search private or specific documents when answering.",
+                  "quote": "With RAG, those documents can be searched at answer time.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says RAG lets the model use private or specific documents at answer time without retraining.",
+                  "kb_chunk_ids": [
+                    "rag/03-why-rag#problem-3-private-and-specific-information"
+                  ]
+                },
+                {
+                  "id": "C19",
+                  "kind": "concept",
+                  "claim": "RAG does not permanently teach those documents to the LLM.",
+                  "quote": "The LLM does not permanently learn them.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says the model does not permanently learn those documents.",
+                  "kb_chunk_ids": [
+                    "rag/03-why-rag#problem-3-private-and-specific-information"
+                  ]
+                },
+                {
+                  "id": "C20",
+                  "kind": "concept",
+                  "claim": "A RAG answer can show its source.",
+                  "quote": "A RAG answer can show the source.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says a RAG system can show its source or citation, including which document, page, or notice the answer came from.",
+                  "kb_chunk_ids": [
+                    "rag/03-why-rag#benefit-answers-with-sources",
+                    "rag/07-augmentation-and-generation#showing-sources"
+                  ]
+                },
+                {
+                  "id": "C21",
+                  "kind": "concept",
+                  "claim": "Fine-tuning means training a model again so the model itself changes.",
+                  "quote": "Fine-tuning [मॉडल को दोबारा सिखाना] means training a model again so the model itself changes.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says fine-tuning trains an already-trained model further and changes the model's weights, so the model itself changes.",
+                  "kb_chunk_ids": [
+                    "rag/08-rag-vs-fine-tuning#what-fine-tuning-is",
+                    "rag/11-misconceptions#rag-and-fine-tuning-are-the-same-thing"
+                  ]
+                },
+                {
+                  "id": "C22",
+                  "kind": "concept",
+                  "claim": "Adding documents to a knowledge base is usually cheaper and faster than fine-tuning or retraining.",
+                  "quote": "Adding documents to a knowledge base is usually cheaper and faster than fine-tuning or retraining.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says adding or updating documents in a knowledge base is usually much cheaper and faster than fine-tuning or retraining.",
+                  "kb_chunk_ids": [
+                    "rag/03-why-rag#benefit-cheaper-and-faster-updates",
+                    "rag/08-rag-vs-fine-tuning#when-each-is-used"
+                  ]
+                },
+                {
+                  "id": "C23",
+                  "kind": "concept",
+                  "claim": "RAG has five main steps.",
+                  "quote": "RAG has five main steps.",
+                  "verdict": "NOT_FOUND",
+                  "explanation": "The knowledge base describes RAG steps, but it does not explicitly state that RAG has five main steps.",
+                  "kb_chunk_ids": []
+                },
+                {
+                  "id": "C24",
+                  "kind": "concept",
+                  "claim": "A chunk is a small piece of a long document.",
+                  "quote": "A chunk [टुकड़ा] is a small piece of a long document.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says chunks are pieces of text that are indexed, and a chunk is a small piece of a long document.",
+                  "kb_chunk_ids": [
+                    "rag/04-how-rag-works#phase-1-step-2-index-the-chunks"
+                  ]
+                },
+                {
+                  "id": "C25",
+                  "kind": "concept",
+                  "claim": "An index is an organised store that makes search fast.",
+                  "quote": "An index [खोजने के लिए बनी सूची] is an organised store that makes search fast.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says chunks are indexed so they can be searched quickly, which matches an organised store that makes search fast.",
+                  "kb_chunk_ids": [
+                    "rag/04-how-rag-works#phase-1-step-2-index-the-chunks"
+                  ]
+                },
+                {
+                  "id": "C26",
+                  "kind": "concept",
+                  "claim": "An embedding is a list of numbers that represents meaning.",
+                  "quote": "An embedding [अर्थ बताने वाली संख्याओं की सूची] is a list of numbers that shows meaning.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says an embedding is a list of numbers that represents the meaning of a piece of text.",
+                  "kb_chunk_ids": [
+                    "rag/05-embeddings-and-search#embeddings"
+                  ]
+                },
+                {
+                  "id": "C27",
+                  "kind": "concept",
+                  "claim": "A vector is a list of numbers.",
+                  "quote": "A vector [संख्याओं की सूची] is a list of numbers.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says a list of numbers like an embedding is also called a vector.",
+                  "kb_chunk_ids": [
+                    "rag/05-embeddings-and-search#vectors"
+                  ]
+                },
+                {
+                  "id": "C28",
+                  "kind": "concept",
+                  "claim": "A vector database stores embeddings together with their text.",
+                  "quote": "A vector database [संख्याओं की सूचियों का डेटाबेस] stores embeddings with their text.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says a vector database stores many embeddings together with the text they came from.",
+                  "kb_chunk_ids": [
+                    "rag/05-embeddings-and-search#vector-databases"
+                  ]
+                },
+                {
+                  "id": "C29",
+                  "kind": "concept",
+                  "claim": "Keyword search finds text with the same words as the question.",
+                  "quote": "Keyword search [शब्दों से खोज] finds text with the same words as the question.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says keyword search finds chunks that contain the same words as the question.",
+                  "kb_chunk_ids": [
+                    "rag/05-embeddings-and-search#keyword-search-and-hybrid-search"
+                  ]
+                },
+                {
+                  "id": "C30",
+                  "kind": "concept",
+                  "claim": "Similarity search finds the chunks closest in meaning to the query.",
+                  "quote": "Similarity search [मिलती-जुलती चीज़ खोजना] finds chunks closest in meaning to the query.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says similarity search returns the chunks whose embeddings are closest to the question's embedding, meaning closest in meaning to the query.",
+                  "kb_chunk_ids": [
+                    "rag/05-embeddings-and-search#similarity-search"
+                  ]
+                }
+              ],
+              "forced": false,
+              "agent_steps": 6
+            },
+            "evidence_verified": true,
+            "votes": [],
+            "latency_ms": 32774
+          },
+          {
+            "check_id": "ACC-2",
+            "dimension": "accuracy",
+            "title": "No invented specifics",
+            "method": "fact_check",
+            "severity": "critical",
+            "verdict": "PASS",
+            "reasoning": "All 0 specific facts (numbers, dates, names) are supported by the knowledge base.",
+            "evidence": [],
+            "fix_instruction": "",
+            "details": {
+              "claims": [
+                {
+                  "id": "C2",
+                  "kind": "concept",
+                  "claim": "Artificial intelligence refers to computer programs that do tasks requiring human thinking.",
+                  "quote": "Artificial Intelligence [कृत्रिम बुद्धि] means computer programs that do tasks needing human thinking.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says AI means computer programs that do tasks that normally need human thinking.",
+                  "kb_chunk_ids": [
+                    "rag/01-llm-basics#what-a-large-language-model-is"
+                  ]
+                },
+                {
+                  "id": "C3",
+                  "kind": "concept",
+                  "claim": "A large language model is an AI model that can understand and write language.",
+                  "quote": "A Large Language Model [बड़ा भाषा मॉडल], or LLM, is an AI model that can understand and write language.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says an LLM can understand a question and write a new answer, so it can understand and write language.",
+                  "kb_chunk_ids": [
+                    "rag/01-llm-basics#what-a-large-language-model-is"
+                  ]
+                },
+                {
+                  "id": "C4",
+                  "kind": "concept",
+                  "claim": "Retrieval means finding useful information and bringing it back.",
+                  "quote": "Retrieval [खोजकर लाना] means finding useful information and bringing it back.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says retrieval means finding and bringing back relevant information.",
+                  "kb_chunk_ids": [
+                    "rag/02-what-is-rag#meaning-of-the-name"
+                  ]
+                },
+                {
+                  "id": "C5",
+                  "kind": "concept",
+                  "claim": "Augmentation means adding useful information to improve the prompt.",
+                  "quote": "Augmentation [कुछ जोड़कर बढ़ाना] means adding useful information to make the prompt better.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says the prompt is augmented by adding the retrieved information to make it better.",
+                  "kb_chunk_ids": [
+                    "rag/02-what-is-rag#meaning-of-the-name",
+                    "rag/04-how-rag-works#phase-2-step-4-augment"
+                  ]
+                },
+                {
+                  "id": "C6",
+                  "kind": "concept",
+                  "claim": "Generation means creating new text such as an answer.",
+                  "quote": "Generation [बनाना, रचना] means creating new text, like an answer.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says generation means creating new text, and the LLM generates the answer.",
+                  "kb_chunk_ids": [
+                    "rag/02-what-is-rag#meaning-of-the-name"
+                  ]
+                },
+                {
+                  "id": "C7",
+                  "kind": "concept",
+                  "claim": "RAG means finding useful outside information, adding it to the prompt, and then having the LLM write the answer.",
+                  "quote": "So, RAG has a simple meaning.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says RAG retrieves information, adds it to the prompt, and the LLM generates the answer from the augmented prompt.",
+                  "kb_chunk_ids": [
+                    "rag/02-what-is-rag#meaning-of-the-name",
+                    "rag/04-how-rag-works#phase-2-step-4-augment",
+                    "rag/04-how-rag-works#phase-2-step-5-generate"
+                  ]
+                },
+                {
+                  "id": "C8",
+                  "kind": "concept",
+                  "claim": "A knowledge base is the document collection that RAG searches.",
+                  "quote": "A knowledge base [जानकारी का भंडार] is the document collection that RAG searches.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says the outside knowledge source that RAG searches is called a knowledge base and it is a collection of documents.",
+                  "kb_chunk_ids": [
+                    "rag/02-what-is-rag#the-knowledge-base"
+                  ]
+                },
+                {
+                  "id": "C9",
+                  "kind": "concept",
+                  "claim": "The knowledge base is separate from the LLM.",
+                  "quote": "It is separate from the LLM.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says the knowledge base is separate from the LLM.",
+                  "kb_chunk_ids": [
+                    "rag/02-what-is-rag#the-knowledge-base"
+                  ]
+                },
+                {
+                  "id": "C10",
+                  "kind": "concept",
+                  "claim": "The knowledge base can be updated without changing the model.",
+                  "quote": "You can update it without changing the model.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says it can be changed or updated without changing the model.",
+                  "kb_chunk_ids": [
+                    "rag/02-what-is-rag#the-knowledge-base"
+                  ]
+                },
+                {
+                  "id": "C11",
+                  "kind": "concept",
+                  "claim": "An LLM may not know information published after its knowledge cutoff.",
+                  "quote": "By itself, an LLM may not know a notice published after that date.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says an LLM on its own does not know about events, prices, rules, or documents that appeared after its knowledge cutoff.",
+                  "kb_chunk_ids": [
+                    "rag/01-llm-basics#knowledge-cutoff"
+                  ]
+                },
+                {
+                  "id": "C12",
+                  "kind": "concept",
+                  "claim": "RAG searches the knowledge base at question time.",
+                  "quote": "RAG can search the knowledge base when you ask.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says RAG addresses outdated knowledge by searching a knowledge base at the moment the question is asked.",
+                  "kb_chunk_ids": [
+                    "rag/03-why-rag#problem-1-outdated-knowledge-knowledge-cutoff"
+                  ]
+                },
+                {
+                  "id": "C13",
+                  "kind": "concept",
+                  "claim": "If the knowledge base is updated, RAG can use current text in its answers.",
+                  "quote": "If the knowledge base is updated, the answer can use current text.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says if the knowledge base is kept up to date, the model can answer using current information.",
+                  "kb_chunk_ids": [
+                    "rag/03-why-rag#problem-1-outdated-knowledge-knowledge-cutoff"
+                  ]
+                },
+                {
+                  "id": "C14",
+                  "kind": "concept",
+                  "claim": "Hallucination is when an AI gives a false answer that sounds correct.",
+                  "quote": "Hallucination means an AI gives a false answer that sounds correct.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says hallucination is when an LLM gives an answer that sounds fluent and confident but is false or made up.",
+                  "kb_chunk_ids": [
+                    "rag/01-llm-basics#hallucination"
+                  ]
+                },
+                {
+                  "id": "C15",
+                  "kind": "concept",
+                  "claim": "RAG provides real text to the LLM for answering.",
+                  "quote": "RAG gives the LLM real text to use.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says the relevant information is right there in the prompt, so the model can base its answer on it.",
+                  "kb_chunk_ids": [
+                    "rag/04-how-rag-works#phase-2-step-5-generate"
+                  ]
+                },
+                {
+                  "id": "C16",
+                  "kind": "concept",
+                  "claim": "RAG reduces the chance of made-up answers.",
+                  "quote": "This reduces the chance of a made-up answer.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says giving the model relevant, reliable text reduces hallucination.",
+                  "kb_chunk_ids": [
+                    "rag/03-why-rag#problem-2-hallucination"
+                  ]
+                },
+                {
+                  "id": "C17",
+                  "kind": "concept",
+                  "claim": "RAG does not fully remove the risk of wrong answers.",
+                  "quote": "It does not remove the risk fully.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says RAG reduces hallucination but does not remove it completely.",
+                  "kb_chunk_ids": [
+                    "rag/03-why-rag#problem-2-hallucination"
+                  ]
+                },
+                {
+                  "id": "C18",
+                  "kind": "concept",
+                  "claim": "RAG can search private or specific documents when answering.",
+                  "quote": "With RAG, those documents can be searched at answer time.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says RAG lets the model use private or specific documents at answer time without retraining.",
+                  "kb_chunk_ids": [
+                    "rag/03-why-rag#problem-3-private-and-specific-information"
+                  ]
+                },
+                {
+                  "id": "C19",
+                  "kind": "concept",
+                  "claim": "RAG does not permanently teach those documents to the LLM.",
+                  "quote": "The LLM does not permanently learn them.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says the model does not permanently learn those documents.",
+                  "kb_chunk_ids": [
+                    "rag/03-why-rag#problem-3-private-and-specific-information"
+                  ]
+                },
+                {
+                  "id": "C20",
+                  "kind": "concept",
+                  "claim": "A RAG answer can show its source.",
+                  "quote": "A RAG answer can show the source.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says a RAG system can show its source or citation, including which document, page, or notice the answer came from.",
+                  "kb_chunk_ids": [
+                    "rag/03-why-rag#benefit-answers-with-sources",
+                    "rag/07-augmentation-and-generation#showing-sources"
+                  ]
+                },
+                {
+                  "id": "C21",
+                  "kind": "concept",
+                  "claim": "Fine-tuning means training a model again so the model itself changes.",
+                  "quote": "Fine-tuning [मॉडल को दोबारा सिखाना] means training a model again so the model itself changes.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says fine-tuning trains an already-trained model further and changes the model's weights, so the model itself changes.",
+                  "kb_chunk_ids": [
+                    "rag/08-rag-vs-fine-tuning#what-fine-tuning-is",
+                    "rag/11-misconceptions#rag-and-fine-tuning-are-the-same-thing"
+                  ]
+                },
+                {
+                  "id": "C22",
+                  "kind": "concept",
+                  "claim": "Adding documents to a knowledge base is usually cheaper and faster than fine-tuning or retraining.",
+                  "quote": "Adding documents to a knowledge base is usually cheaper and faster than fine-tuning or retraining.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says adding or updating documents in a knowledge base is usually much cheaper and faster than fine-tuning or retraining.",
+                  "kb_chunk_ids": [
+                    "rag/03-why-rag#benefit-cheaper-and-faster-updates",
+                    "rag/08-rag-vs-fine-tuning#when-each-is-used"
+                  ]
+                },
+                {
+                  "id": "C23",
+                  "kind": "concept",
+                  "claim": "RAG has five main steps.",
+                  "quote": "RAG has five main steps.",
+                  "verdict": "NOT_FOUND",
+                  "explanation": "The knowledge base describes RAG steps, but it does not explicitly state that RAG has five main steps.",
+                  "kb_chunk_ids": []
+                },
+                {
+                  "id": "C24",
+                  "kind": "concept",
+                  "claim": "A chunk is a small piece of a long document.",
+                  "quote": "A chunk [टुकड़ा] is a small piece of a long document.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says chunks are pieces of text that are indexed, and a chunk is a small piece of a long document.",
+                  "kb_chunk_ids": [
+                    "rag/04-how-rag-works#phase-1-step-2-index-the-chunks"
+                  ]
+                },
+                {
+                  "id": "C25",
+                  "kind": "concept",
+                  "claim": "An index is an organised store that makes search fast.",
+                  "quote": "An index [खोजने के लिए बनी सूची] is an organised store that makes search fast.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says chunks are indexed so they can be searched quickly, which matches an organised store that makes search fast.",
+                  "kb_chunk_ids": [
+                    "rag/04-how-rag-works#phase-1-step-2-index-the-chunks"
+                  ]
+                },
+                {
+                  "id": "C26",
+                  "kind": "concept",
+                  "claim": "An embedding is a list of numbers that represents meaning.",
+                  "quote": "An embedding [अर्थ बताने वाली संख्याओं की सूची] is a list of numbers that shows meaning.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says an embedding is a list of numbers that represents the meaning of a piece of text.",
+                  "kb_chunk_ids": [
+                    "rag/05-embeddings-and-search#embeddings"
+                  ]
+                },
+                {
+                  "id": "C27",
+                  "kind": "concept",
+                  "claim": "A vector is a list of numbers.",
+                  "quote": "A vector [संख्याओं की सूची] is a list of numbers.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says a list of numbers like an embedding is also called a vector.",
+                  "kb_chunk_ids": [
+                    "rag/05-embeddings-and-search#vectors"
+                  ]
+                },
+                {
+                  "id": "C28",
+                  "kind": "concept",
+                  "claim": "A vector database stores embeddings together with their text.",
+                  "quote": "A vector database [संख्याओं की सूचियों का डेटाबेस] stores embeddings with their text.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says a vector database stores many embeddings together with the text they came from.",
+                  "kb_chunk_ids": [
+                    "rag/05-embeddings-and-search#vector-databases"
+                  ]
+                },
+                {
+                  "id": "C29",
+                  "kind": "concept",
+                  "claim": "Keyword search finds text with the same words as the question.",
+                  "quote": "Keyword search [शब्दों से खोज] finds text with the same words as the question.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says keyword search finds chunks that contain the same words as the question.",
+                  "kb_chunk_ids": [
+                    "rag/05-embeddings-and-search#keyword-search-and-hybrid-search"
+                  ]
+                },
+                {
+                  "id": "C30",
+                  "kind": "concept",
+                  "claim": "Similarity search finds the chunks closest in meaning to the query.",
+                  "quote": "Similarity search [मिलती-जुलती चीज़ खोजना] finds chunks closest in meaning to the query.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says similarity search returns the chunks whose embeddings are closest to the question's embedding, meaning closest in meaning to the query.",
+                  "kb_chunk_ids": [
+                    "rag/05-embeddings-and-search#similarity-search"
+                  ]
+                }
+              ],
+              "forced": false,
+              "agent_steps": 6
+            },
+            "evidence_verified": true,
+            "votes": [],
+            "latency_ms": 32774
+          },
+          {
+            "check_id": "ACC-3",
+            "dimension": "accuracy",
+            "title": "Helper-language hints are correct",
+            "method": "llm_judge",
+            "severity": "major",
+            "verdict": "PASS",
+            "reasoning": "The Hindi hints are in Hindi script and generally use common, everyday words a school graduate can understand. They also match the English terms in this lesson’s RAG context, without any clearly wrong or misleading explanations. I did not find any hint that is in another language or uses overly rare, bookish wording that would block understanding.",
+            "evidence": [
+              "कृत्रिम बुद्धि",
+              "जानकारी खोजकर, उसे जोड़कर जवाब बनाने का तरीका",
+              "एक बार में पढ़ने की सीमा"
+            ],
+            "fix_instruction": "",
+            "details": {
+              "votes": 1,
+              "decided_by": "gpt-5.4-mini"
+            },
+            "evidence_verified": true,
+            "votes": [],
+            "latency_ms": 6473
+          },
+          {
+            "check_id": "LANG-1",
+            "dimension": "language",
+            "title": "Easy reading level",
+            "method": "deterministic",
+            "severity": "major",
+            "verdict": "PASS",
+            "reasoning": "Flesch-Kincaid grade is 4.74 (limit 8.0); average sentence 7.48 words.",
+            "evidence": [],
+            "fix_instruction": "",
+            "details": {
+              "limit": 8.0,
+              "fk_grade": 4.74
+            },
+            "evidence_verified": null,
+            "votes": [],
+            "latency_ms": 1535
+          },
+          {
+            "check_id": "LANG-2",
+            "dimension": "language",
+            "title": "Short sentences",
+            "method": "deterministic",
+            "severity": "major",
+            "verdict": "PASS",
+            "reasoning": "Sentence lengths are within limits.",
+            "evidence": [],
+            "fix_instruction": "",
+            "details": {
+              "long_sentences": 0,
+              "avg_sentence_words": 7.48,
+              "max_sentence_words": 18
+            },
+            "evidence_verified": null,
+            "votes": [],
+            "latency_ms": 1535
+          },
+          {
+            "check_id": "LANG-3",
+            "dimension": "language",
+            "title": "Everyday vocabulary",
+            "method": "deterministic",
+            "severity": "major",
+            "verdict": "PASS",
+            "reasoning": "9 distinct difficult word(s) outside the glossary and jargon list (limit 10): confuse, correctness, distract, misconception, mislead, retrain, retraining, retrains, timetable.",
+            "evidence": [
+              "confuse, correctness, distract, misconception, mislead, retrain, retraining, retrains, timetable"
+            ],
+            "fix_instruction": "",
+            "details": {
+              "limit": 10,
+              "difficult_words": [
+                "confuse",
+                "correctness",
+                "distract",
+                "misconception",
+                "mislead",
+                "retrain",
+                "retraining",
+                "retrains",
+                "timetable"
+              ]
+            },
+            "evidence_verified": null,
+            "votes": [],
+            "latency_ms": 1535
+          },
+          {
+            "check_id": "LANG-4",
+            "dimension": "language",
+            "title": "No idioms or assumed knowledge",
+            "method": "llm_judge",
+            "severity": "major",
+            "verdict": "FAIL",
+            "reasoning": "The lesson uses figurative comparison rather than fully literal wording, especially in the hook section. The open-book exam comparison and repeated “like” analogies are understandable, but this checkpoint requires no idioms or figurative expressions. The lesson does explain technical ideas clearly, so the main issue is the figurative framing.",
+            "evidence": [
+              "Like an Open-Book Exam",
+              "The student is like the AI model.",
+              "Here is the map."
+            ],
+            "fix_instruction": "Rewrite the hook section to use direct, literal explanation instead of the open-book exam comparison and other “like” analogies; keep the same meaning but state RAG steps and roles in plain factual sentences.",
+            "details": {
+              "votes": 2,
+              "decided_by": "gpt-5.4-mini"
+            },
+            "evidence_verified": true,
+            "votes": [
+              {
+                "model": "gpt-5.4-mini",
+                "verdict": "FAIL",
+                "reasoning": "The lesson uses figurative comparison language instead of only literal plain English. Phrases like “Imagine an open-book exam” and “The student is like the AI model” are analogies, and “Here is the map” is also a figurative framing line. These may be understandable, but the checkpoint requires no idioms or figurative expressions."
+              },
+              {
+                "model": "gpt-5.4-mini",
+                "verdict": "FAIL",
+                "reasoning": "The lesson uses figurative comparison rather than fully literal wording, especially in the hook section. The open-book exam comparison and repeated “like” analogies are understandable, but this checkpoint requires no idioms or figurative expressions. The lesson does explain technical ideas clearly, so the main issue is the figurative framing."
+              }
+            ],
+            "latency_ms": 15710
+          },
+          {
+            "check_id": "LANG-5",
+            "dimension": "language",
+            "title": "Right length",
+            "method": "deterministic",
+            "severity": "major",
+            "verdict": "PASS",
+            "reasoning": "The lesson body has 1354 words (allowed 900-2000).",
+            "evidence": [],
+            "fix_instruction": "",
+            "details": {
+              "word_count": 1354
+            },
+            "evidence_verified": null,
+            "votes": [],
+            "latency_ms": 1535
+          },
+          {
+            "check_id": "EX-1",
+            "dimension": "examples",
+            "title": "Concrete worked example",
+            "method": "llm_judge",
+            "severity": "major",
+            "verdict": "PASS",
+            "reasoning": "The lesson includes a concrete, end-to-end worked example using specific college notice text and an exact user question. It shows the retrieved information, how that information is inserted into the prompt, and the final answer that uses the retrieved facts. This satisfies all required parts of the checkpoint.",
+            "evidence": [
+              "User question: “What is the last date to submit the scholarship form, and where should I submit it?”",
+              "Chunk 1 is from Source: College Notice A.",
+              "“Answer the question using only the information below."
+            ],
+            "fix_instruction": "",
+            "details": {
+              "votes": 1,
+              "decided_by": "gpt-5.4-mini"
+            },
+            "evidence_verified": true,
+            "votes": [],
+            "latency_ms": 5949
+          },
+          {
+            "check_id": "EX-2",
+            "dimension": "examples",
+            "title": "Relatable Indian analogy, mapped",
+            "method": "llm_judge",
+            "severity": "major",
+            "verdict": "PASS",
+            "reasoning": "The lesson uses a very familiar everyday Indian-school analogy: an open-book exam. It also explicitly maps multiple parts of the analogy to RAG parts, including student/AI model, question paper/question, textbook/documents, and retrieval/augmentation/generation. This meets the checkpoint requirements.",
+            "evidence": [
+              "Imagine an open-book exam in your school.",
+              "The student is like the AI model. The question paper is like your question. The textbook is like the documents.",
+              "Finding the right page is **retrieval**. Adding useful lines to rough work is **augmentation**. Writing the final answer is **generation**."
+            ],
+            "fix_instruction": "",
+            "details": {
+              "votes": 1,
+              "decided_by": "gpt-5.4-mini"
+            },
+            "evidence_verified": true,
+            "votes": [],
+            "latency_ms": 6914
+          },
+          {
+            "check_id": "JAR-1",
+            "dimension": "jargon",
+            "title": "Glossary covers all jargon",
+            "method": "deterministic",
+            "severity": "major",
+            "verdict": "PASS",
+            "reasoning": "24 technical term(s) used; all have glossary entries.",
+            "evidence": [],
+            "fix_instruction": "",
+            "details": {
+              "missing": [],
+              "terms_used": [
+                "artificial intelligence",
+                "augmentation",
+                "chunk",
+                "context window",
+                "embedding",
+                "fine-tuning",
+                "generation",
+                "hallucination",
+                "index",
+                "keyword search",
+                "knowledge base",
+                "knowledge cutoff",
+                "large language model",
+                "model weights",
+                "prompt",
+                "query",
+                "retrieval",
+                "retrieval-augmented generation",
+                "similarity search",
+                "token",
+                "top-k",
+                "training data",
+                "vector",
+                "vector database"
+              ]
+            },
+            "evidence_verified": null,
+            "votes": [],
+            "latency_ms": 1535
+          },
+          {
+            "check_id": "JAR-2",
+            "dimension": "jargon",
+            "title": "Terms explained at first use",
+            "method": "llm_judge",
+            "severity": "major",
+            "verdict": "PASS",
+            "reasoning": "Every technical term named in the lesson body is introduced with a simple explanation at its first appearance, often with a Hindi hint. I did not find any technical term that is used before being explained, and the glossary is not being relied on as the only explanation. The body text also keeps the explanations simple enough for a beginner learner.",
+            "evidence": [
+              "**Artificial Intelligence** [कृत्रिम बुद्धि] means computer programs that do tasks needing human thinking.",
+              "A **Large Language Model** [बड़ा भाषा मॉडल], or LLM, is an AI model that can understand and write language.",
+              "A **chunk** [टुकड़ा] is a small piece of a long document."
+            ],
+            "fix_instruction": "",
+            "details": {
+              "votes": 1,
+              "decided_by": "gpt-5.4-mini"
+            },
+            "evidence_verified": true,
+            "votes": [],
+            "latency_ms": 8302
+          },
+          {
+            "check_id": "JAR-3",
+            "dimension": "jargon",
+            "title": "Acronyms expanded",
+            "method": "deterministic",
+            "severity": "major",
+            "verdict": "FAIL",
+            "reasoning": "Acronyms used without being written out in full at first use: LLM.",
+            "evidence": [
+              "List the main reasons why RAG is useful for LLM answers."
+            ],
+            "fix_instruction": "At the first use of each of these acronyms, write the full form next to it, e.g. 'LLM (Large Language Model)': LLM",
+            "details": {
+              "acronyms": [
+                "AI",
+                "LLM",
+                "RAG"
+              ],
+              "unexpanded": [
+                "LLM"
+              ]
+            },
+            "evidence_verified": null,
+            "votes": [],
+            "latency_ms": 1535
+          },
+          {
+            "check_id": "JAR-4",
+            "dimension": "jargon",
+            "title": "Helper-language hint for every key word",
+            "method": "deterministic",
+            "severity": "major",
+            "verdict": "PASS",
+            "reasoning": "All 26 glossary entries have a Hindi meaning.",
+            "evidence": [],
+            "fix_instruction": "",
+            "details": {
+              "missing": [],
+              "language": "Hindi"
+            },
+            "evidence_verified": null,
+            "votes": [],
+            "latency_ms": 1535
+          },
+          {
+            "check_id": "COV-1",
+            "dimension": "coverage",
+            "title": "Explains what it is",
+            "method": "llm_judge",
+            "severity": "critical",
+            "verdict": "PASS",
+            "reasoning": "The lesson gives a short, simple definition early on and explains the core idea clearly. It says the system finds useful outside information, adds it to the prompt with the question, and then the LLM answers using that information. The definition is correct and does not rely on unexplained jargon.",
+            "evidence": [
+              "Retrieval-Augmented Generation [जानकारी खोजकर, उसे जोड़कर जवाब बनाने का तरीका] is similar to that exam.",
+              "So, RAG has a simple meaning. Before the LLM answers, the system finds useful outside information. It adds that information to the prompt with your question. Then the LLM writes the answer using that information."
+            ],
+            "fix_instruction": "",
+            "details": {
+              "votes": 1,
+              "decided_by": "gpt-5.4-mini"
+            },
+            "evidence_verified": true,
+            "votes": [],
+            "latency_ms": 7111
+          },
+          {
+            "check_id": "COV-2",
+            "dimension": "coverage",
+            "title": "Explains why it matters",
+            "method": "llm_judge",
+            "severity": "critical",
+            "verdict": "PASS",
+            "reasoning": "The lesson explains several reasons RAG matters, not just by naming them. It gives concrete consequences for knowledge cutoff, hallucination, and private/specific documents, such as wrong answers about new rules, misleading deadline information, and access to school or company documents. That satisfies the requirement of at least two problems with examples of what goes wrong without RAG.",
+            "evidence": [
+              "By itself, an LLM may not know a notice published after that date. The result can be a wrong answer about a new rule.",
+              "Hallucination means an AI gives a false answer that sounds correct. This can mislead a student about a deadline.",
+              "A general LLM may not have your school timetable or shop return policy. With RAG, those documents can be searched at answer time."
+            ],
+            "fix_instruction": "",
+            "details": {
+              "votes": 1,
+              "decided_by": "gpt-5.4-mini"
+            },
+            "evidence_verified": true,
+            "votes": [],
+            "latency_ms": 8226
+          },
+          {
+            "check_id": "COV-3",
+            "dimension": "coverage",
+            "title": "Explains how it works, in order",
+            "method": "llm_judge",
+            "severity": "critical",
+            "verdict": "PASS",
+            "reasoning": "The lesson explains the RAG process step by step in the correct order: prepare, index, retrieve, augment, and generate. It also defines each step clearly and reinforces the order in the worked example and summary. No required step is missing or described incorrectly.",
+            "evidence": [
+              "Step 1 is prepare the knowledge.",
+              "Step 2 is index the chunks.",
+              "Step 3 is retrieve."
+            ],
+            "fix_instruction": "",
+            "details": {
+              "votes": 1,
+              "decided_by": "gpt-5.4-mini"
+            },
+            "evidence_verified": true,
+            "votes": [],
+            "latency_ms": 6554
+          },
+          {
+            "check_id": "COV-4",
+            "dimension": "coverage",
+            "title": "Limits and misconceptions",
+            "method": "llm_judge",
+            "severity": "major",
+            "verdict": "PASS",
+            "reasoning": "The lesson clearly states multiple limitations, including that the context window is limited and that answer quality depends on retrieval quality. It also explicitly corrects misconceptions, for example saying RAG retrains the model is false. Therefore the checkpoint is satisfied.",
+            "evidence": [
+              "RAG has limits.",
+              "The context window is limited.",
+              "Misconception 1: RAG retrains the model. This is false."
+            ],
+            "fix_instruction": "",
+            "details": {
+              "votes": 1,
+              "decided_by": "gpt-5.4-mini"
+            },
+            "evidence_verified": true,
+            "votes": [],
+            "latency_ms": 8635
+          },
+          {
+            "check_id": "COV-5",
+            "dimension": "coverage",
+            "title": "Simulated learner passes",
+            "method": "learner",
+            "severity": "major",
+            "verdict": "PASS",
+            "reasoning": "The simulated learner answered 6 of 6 held-out questions correctly from the lesson alone (need 5).",
+            "evidence": [],
+            "fix_instruction": "",
+            "details": {
+              "score": 6,
+              "needed": 5,
+              "answers": [
+                {
+                  "answer": "RAG stands for Retrieval-Augmented Generation.",
+                  "correct": true,
+                  "question": "What does RAG stand for?",
+                  "question_id": "Q1",
+                  "grader_reason": "Matches the reference answer exactly.",
+                  "support_quote": "Retrieval-Augmented Generation [जानकारी खोजकर, उसे जोड़कर जवाब बनाने का तरीका] is similar to that exam.",
+                  "supported_by_lesson": true
+                },
+                {
+                  "answer": "An LLM may not know a notice or event that happened after its knowledge cutoff, so it can give a wrong answer.",
+                  "correct": true,
+                  "question": "Why might an LLM give an outdated or wrong answer about something that happened recently?",
+                  "question_id": "Q2",
+                  "grader_reason": "It correctly says the LLM may not know about events after its knowledge cutoff and can answer wrongly.",
+                  "support_quote": "By itself, an LLM may not know a notice published after that date. The result can be a wrong answer about a new rule.",
+                  "supported_by_lesson": true
+                },
+                {
+                  "answer": "Before the LLM writes its answer, the system finds useful outside information and adds it to the prompt with the question.",
+                  "correct": true,
+                  "question": "In RAG, what happens before the LLM writes its answer?",
+                  "question_id": "Q3",
+                  "grader_reason": "It conveys that relevant outside information is found and added to the prompt before the answer is written.",
+                  "support_quote": "Before the LLM answers, the system finds useful outside information. It adds that information to the prompt with your question.",
+                  "supported_by_lesson": true
+                },
+                {
+                  "answer": "First it finds relevant information, then it adds the found information to the prompt, and then it generates the answer.",
+                  "correct": true,
+                  "question": "Put these steps in the right order - generate the answer; add the found information to the prompt; find relevant information.",
+                  "question_id": "Q4",
+                  "grader_reason": "The steps are in the correct order: retrieve, augment, then generate.",
+                  "support_quote": "The system adds the retrieved chunks to the prompt. It also adds your question and instructions. One instruction can say, “Use only the given information.”",
+                  "supported_by_lesson": true
+                },
+                {
+                  "answer": "No, RAG does not permanently change or retrain the LLM. It only changes the prompt for one question.",
+                  "correct": true,
+                  "question": "Does RAG permanently change or retrain the LLM? Explain.",
+                  "question_id": "Q5",
+                  "grader_reason": "It correctly says RAG does not permanently change or retrain the LLM and only affects the prompt for that question.",
+                  "support_quote": "RAG does not retrain the LLM. It only changes the prompt for one question.",
+                  "supported_by_lesson": true
+                },
+                {
+                  "answer": "A college scholarship notice is one real-life example. Students can ask about the last date and where to submit the form.",
+                  "correct": true,
+                  "question": "Give one real-life example where RAG is useful.",
+                  "question_id": "Q6",
+                  "grader_reason": "A college scholarship notice is a valid real-life RAG example because it uses specific information the model may not have been trained on.",
+                  "support_quote": "For example, a college can add a new exam notice. Then students can ask about it.",
+                  "supported_by_lesson": true
+                }
+              ]
+            },
+            "evidence_verified": true,
+            "votes": [],
+            "latency_ms": 12075
+          },
+          {
+            "check_id": "FLOW-1",
+            "dimension": "flow",
+            "title": "Sections in teaching order",
+            "method": "deterministic",
+            "severity": "critical",
+            "verdict": "PASS",
+            "reasoning": "All required sections are present in teaching order: hook -> what -> why -> how -> example -> misconceptions -> summary.",
+            "evidence": [
+              "hook: Hook: Like an Open-Book Exam",
+              "what: What RAG Is",
+              "why: Why RAG Matters",
+              "how: How RAG Works Step by Step",
+              "example: Worked Example: College Scholarship Notice"
+            ],
+            "fix_instruction": "",
+            "details": {
+              "missing": [],
+              "sections": [
+                "hook",
+                "what",
+                "why",
+                "how",
+                "example",
+                "misconceptions",
+                "summary"
+              ]
+            },
+            "evidence_verified": null,
+            "votes": [],
+            "latency_ms": 1535
+          },
+          {
+            "check_id": "FLOW-2",
+            "dimension": "flow",
+            "title": "Builds step by step",
+            "method": "llm_judge",
+            "severity": "major",
+            "verdict": "PASS",
+            "reasoning": "The lesson introduces each important term before using it in later sections: RAG, retrieval, augmentation, generation, knowledge base, and the five-step process are all explained before the worked example and summary. The sections also connect clearly, moving from hook to definition, then why it matters, then how it works, then an example and misconceptions. The summary only restates ideas already taught and does not add new concepts.",
+            "evidence": [
+              "Here is the map.",
+              "RAG has five main steps.",
+              "RAG means retrieve, augment, and generate."
+            ],
+            "fix_instruction": "",
+            "details": {
+              "votes": 1,
+              "decided_by": "gpt-5.4-mini"
+            },
+            "evidence_verified": true,
+            "votes": [],
+            "latency_ms": 9667
+          },
+          {
+            "check_id": "FLOW-3",
+            "dimension": "flow",
+            "title": "Valid quiz",
+            "method": "deterministic",
+            "severity": "major",
+            "verdict": "PASS",
+            "reasoning": "Quiz has 5 well-formed multiple-choice questions.",
+            "evidence": [],
+            "fix_instruction": "",
+            "details": {
+              "questions": 5
+            },
+            "evidence_verified": null,
+            "votes": [],
+            "latency_ms": 1535
+          },
+          {
+            "check_id": "FLOW-4",
+            "dimension": "flow",
+            "title": "Quiz tests what was taught",
+            "method": "llm_judge",
+            "severity": "major",
+            "verdict": "PASS",
+            "reasoning": "Every quiz question is answered directly by the lesson body. The marked options are supported by the lesson, and none of the other options is equally correct. The quiz also matches the lesson’s taught order, definitions, and limits accurately.",
+            "evidence": [
+              "“RAG first retrieves useful information, augments the prompt with it, and then generates an answer.”",
+              "“The lesson teaches this order: prepare knowledge, index chunks, retrieve chunks, augment the prompt, and generate.”",
+              "“Wrong or old documents can still cause wrong answers.”"
+            ],
+            "fix_instruction": "",
+            "details": {
+              "votes": 1,
+              "decided_by": "gpt-5.4-mini"
+            },
+            "evidence_verified": true,
+            "votes": [],
+            "latency_ms": 10342
+          }
+        ],
+        "failed_check_ids": [
+          "LANG-4",
+          "JAR-3"
+        ],
+        "error_check_ids": [],
+        "summary": "FAIL - 2 of 23 checks failed: LANG-4, JAR-3",
+        "usage": {
+          "llm_calls": 21,
+          "input_tokens": 87963,
+          "cached_input_tokens": 34560,
+          "output_tokens": 8294,
+          "reasoning_tokens": 2193,
+          "cost_usd": 0.079966,
+          "by_model": {
+            "gpt-5.4-mini": {
+              "llm_calls": 21,
+              "input_tokens": 87963,
+              "cached_input_tokens": 34560,
+              "output_tokens": 8294,
+              "reasoning_tokens": 2193,
+              "cost_usd": 0.079966
+            }
+          }
+        },
+        "duration_ms": 35053
+      },
+      "revision_notes": [],
+      "diff": [],
+      "strategy_reason": "",
+      "generation_usage": {
+        "llm_calls": 5,
+        "input_tokens": 38633,
+        "cached_input_tokens": 26112,
+        "output_tokens": 7666,
+        "reasoning_tokens": 1557,
+        "cost_usd": 0.305641,
+        "by_model": {
+          "gpt-5.5": {
+            "llm_calls": 5,
+            "input_tokens": 38633,
+            "cached_input_tokens": 26112,
+            "output_tokens": 7666,
+            "reasoning_tokens": 1557,
+            "cost_usd": 0.305641
+          }
+        }
+      },
+      "created_at": "2026-10-14T05:51:44.309199Z"
+    },
+    {
+      "attempt_no": 2,
+      "kind": "patch",
+      "lesson": {
+        "title": "Introduction to RAG (Retrieval-Augmented Generation)",
+        "learning_objectives": [
+          "Explain what Retrieval-Augmented Generation (RAG) means in simple words.",
+          "List the main reasons why RAG is useful for Large Language Model (LLM) answers.",
+          "Describe the five main steps of RAG: prepare, index, retrieve, augment, generate.",
+          "Explain common limits and mistakes about RAG, such as thinking it retrains the model."
+        ],
+        "sections": [
+          {
+            "kind": "hook",
+            "heading": "Hook: A Direct First Picture",
+            "body_markdown": "When you ask an AI system a question, it may need facts from documents. It should not answer only from memory.\n\n**Artificial Intelligence** [कृत्रिम बुद्धि] means computer programs that do tasks needing human thinking. **Retrieval-Augmented Generation** [जानकारी खोजकर, उसे जोड़कर जवाब बनाने का तरीका] is a method for AI answers.\n\nIn this method, the system first finds useful information from documents. Then it adds that information to the question. After that, the AI writes the answer.\n\nThe document is the place that stores facts. The question is what you ask. The found text is the extra help. The final written text is the answer. The page or document name is the **source**."
+          },
+          {
+            "kind": "what",
+            "heading": "What RAG Is",
+            "body_markdown": "A **Large Language Model** [बड़ा भाषा मॉडल], or LLM, is an AI model that can understand and write language. A **prompt** [मॉडल को दिया गया सवाल और निर्देश] is the text given to the model. It can include instructions and your question.\n\n**Retrieval** [खोजकर लाना] means finding useful information and bringing it back. **Augmentation** [कुछ जोड़कर बढ़ाना] means adding useful information to make the prompt better. **Generation** [बनाना, रचना] means creating new text, like an answer.\n\nSo, RAG has a simple meaning. Before the LLM answers, the system finds useful outside information. It adds that information to the prompt with your question. Then the LLM writes the answer using that information.\n\nA **knowledge base** [जानकारी का भंडार] is the document collection that RAG searches. It can contain web pages, college notices, policies, manuals, or articles. It is separate from the LLM. You can update it without changing the model.\n\nUse a school exam comparison to remember the parts. In this comparison, a textbook represents the knowledge base. Finding the correct page represents retrieval. Adding useful lines to the question represents augmentation. Writing the final answer represents generation."
+          },
+          {
+            "kind": "why",
+            "heading": "Why RAG Matters",
+            "body_markdown": "First, RAG helps with new information. **Training data** [प्रशिक्षण डेटा] is the text an AI model learned from. A **knowledge cutoff** [जानकारी की आखिरी तारीख] is the last date of that learned information. By itself, an LLM may not know a notice published after that date. The result can be a wrong answer about a new rule.\n\nRAG can search the knowledge base when you ask. If the knowledge base is updated, the answer can use current text. For example, a college can add a new exam notice. Then students can ask about it.\n\nSecond, RAG helps reduce **hallucination** [मनगढ़ंत जवाब]. Hallucination means an AI gives a false answer that sounds correct. This can mislead a student about a deadline. RAG gives the LLM real text to use. This reduces the chance of a made-up answer. It does not remove the risk fully.\n\nThird, RAG helps with private or specific documents. A general LLM may not have your school timetable or shop return policy. With RAG, those documents can be searched at answer time. The LLM does not permanently learn them.\n\nFourth, RAG can build trust. A **source** [स्रोत] is the place where information came from. A RAG answer can show the source. Then you can check the notice yourself.\n\nFifth, updates can be easier. **Fine-tuning** [मॉडल को दोबारा सिखाना] means training a model again so the model itself changes. Adding documents to a knowledge base is usually cheaper and faster than fine-tuning or retraining."
+          },
+          {
+            "kind": "how",
+            "heading": "How RAG Works Step by Step",
+            "body_markdown": "RAG has five main steps.\n\nStep 1 is prepare the knowledge. The system collects useful documents. It may collect web pages, files, notices, manuals, policies, or articles. Long documents are split into chunks. A **chunk** [टुकड़ा] is a small piece of a long document. It is often a few sentences or paragraphs. Small chunks help send only useful parts to the LLM.\n\nSome systems split text by **tokens**. A **token** [शब्द का छोटा टुकड़ा] is a small piece of text an LLM reads. Some systems split by characters. Better systems often split at headings, paragraphs, or sentences.\n\nStep 2 is index the chunks. An **index** [खोजने के लिए बनी सूची] is an organised store that makes search fast. In a common method, each chunk becomes an **embedding**. An **embedding** [अर्थ बताने वाली संख्याओं की सूची] is a list of numbers that shows meaning. A **vector** [संख्याओं की सूची] is a list of numbers. A **vector database** [संख्याओं की सूचियों का डेटाबेस] stores embeddings with their text. Some systems also use **keyword search**. **Keyword search** [शब्दों से खोज] finds text with the same words as the question.\n\nStep 3 is retrieve. A **retriever** [खोजकर लाने वाला हिस्सा] is the part that searches and returns chunks. A **query** [सवाल या खोज] is your question for search. With embeddings, the query also becomes an embedding. **Similarity search** [मिलती-जुलती चीज़ खोजना] finds chunks closest in meaning to the query. **Top-k** [सबसे मिलते-जुलते कुछ नतीजे] means the best matching chunks returned. Often, this is between 3 and 10 chunks.\n\nStep 4 is augment. The system adds the retrieved chunks to the prompt. It also adds your question and instructions. One instruction can say, “Use only the given information.” Another can say, “Say you do not know if it is not there.”\n\nStep 5 is generate. The LLM reads the full augmented prompt. It writes the answer using the retrieved chunks. It can also mention the source.\n\nThe model itself does not change in these steps. **Model weights** [मॉडल के अंदर सीखी हुई संख्याएँ] are numbers inside the model that store what it learned. RAG does not retrain the LLM. It only changes the prompt for one question.\n\nThere is one more limit here. A **context window** [एक बार में पढ़ने की सीमा] is how much text an LLM can read at one time. Too much retrieved text may not fit. Extra unrelated text can also distract the model."
+          },
+          {
+            "kind": "example",
+            "heading": "Worked Example: College Scholarship Notice",
+            "body_markdown": "Let us use a sample college knowledge base. The college notices are the documents that the system searches.\n\nUser question: “What is the last date to submit the scholarship form, and where should I submit it?”\n\nStep 1, prepare. The system has college notices split into chunks.\n\nChunk 1 is from Source: College Notice A.\n\n“Scholarship form submission: Students must submit the scholarship form by 15 August. Submit the form at the college office.”\n\nChunk 2 is from Source: College Notice B.\n\n“Sports day practice will start on 20 August.”\n\nStep 2, index. The system stores these chunks for fast search. It may store embeddings for their meanings.\n\nStep 3, retrieve. The retriever searches for the user question. Chunk 1 matches the scholarship question. Chunk 2 is less useful, but it may also be returned.\n\nStep 4, augment. The system builds this prompt for the LLM:\n\n“Answer the question using only the information below.\nIf the answer is not in the information, say you don’t know.\nMention the source used.\nInformation:\n[Source: College Notice A]\nScholarship form submission: Students must submit the scholarship form by 15 August.\nSubmit the form at the college office.\n[Source: College Notice B]\nSports day practice will start on 20 August.\nQuestion: What is the last date to submit the scholarship form, and where should I submit it?”\n\nStep 5, generate. The LLM writes the final answer:\n\n“The last date to submit the scholarship form is 15 August. You should submit it at the college office. Source: College Notice A.”\n\nNotice how the answer uses College Notice A. It ignores the sports day line. You can check the source if needed."
+          },
+          {
+            "kind": "misconceptions",
+            "heading": "Common Misconceptions and Limits",
+            "body_markdown": "Misconception 1: RAG retrains the model. This is false. RAG uses found information only for that one answer. Model weights do not change.\n\nMisconception 2: RAG is the same as fine-tuning. This is false. Fine-tuning changes the model itself. RAG only adds information to the prompt.\n\nMisconception 3: RAG always gives correct answers. This is false. Wrong chunks can be retrieved. Documents can also be old or wrong. Then the answer can still be wrong.\n\nMisconception 4: More text is always better. This is false. The context window is limited. Unrelated text can confuse the model.\n\nRAG has limits. Answer quality depends on retrieval quality. The knowledge base must be maintained. New documents must be added. Old or wrong documents should be updated or removed. The extra search step can add time and cost. The model can still hallucinate or ignore the retrieved text."
+          },
+          {
+            "kind": "summary",
+            "heading": "Summary",
+            "body_markdown": "RAG means retrieve, augment, and generate. The system finds the right information first. It adds the information with the question. Then the answer is written.\n\nRAG helps with new, private, and specific information. It can reduce hallucination. It can show sources for checking. Its five steps are prepare, index, retrieve, augment, and generate.\n\nRAG does not retrain the LLM. It does not permanently change model weights. It improves answers, but it does not guarantee correctness. The knowledge base and retrieval quality matter a lot."
+          }
+        ],
+        "glossary": [
+          {
+            "term": "Artificial Intelligence",
+            "simple_meaning": "Computer programs that can do tasks that normally need human thinking.",
+            "helper_meaning": "कृत्रिम बुद्धि"
+          },
+          {
+            "term": "Retrieval-Augmented Generation",
+            "simple_meaning": "A method where the system first finds useful information, adds it to the prompt, and then the AI writes an answer.",
+            "helper_meaning": "जानकारी खोजकर, उसे जोड़कर जवाब बनाने का तरीका"
+          },
+          {
+            "term": "Large Language Model",
+            "simple_meaning": "An AI model that can understand and write language.",
+            "helper_meaning": "बड़ा भाषा मॉडल"
+          },
+          {
+            "term": "Retrieval",
+            "simple_meaning": "Finding useful information and bringing it back.",
+            "helper_meaning": "खोजकर लाना"
+          },
+          {
+            "term": "Augmentation",
+            "simple_meaning": "Making something better by adding useful information to it.",
+            "helper_meaning": "कुछ जोड़कर बढ़ाना"
+          },
+          {
+            "term": "Generation",
+            "simple_meaning": "Creating new text, such as an answer.",
+            "helper_meaning": "बनाना, रचना"
+          },
+          {
+            "term": "Prompt",
+            "simple_meaning": "The text given to an AI model, with instructions and a question.",
+            "helper_meaning": "मॉडल को दिया गया सवाल और निर्देश"
+          },
+          {
+            "term": "Knowledge base",
+            "simple_meaning": "A collection of documents that a system can search.",
+            "helper_meaning": "जानकारी का भंडार"
+          },
+          {
+            "term": "Training data",
+            "simple_meaning": "The text an AI model learned from.",
+            "helper_meaning": "प्रशिक्षण डेटा"
+          },
+          {
+            "term": "Knowledge cutoff",
+            "simple_meaning": "The last date of the information an LLM learned from.",
+            "helper_meaning": "जानकारी की आखिरी तारीख"
+          },
+          {
+            "term": "Hallucination",
+            "simple_meaning": "A false AI answer that sounds correct.",
+            "helper_meaning": "मनगढ़ंत जवाब"
+          },
+          {
+            "term": "Source",
+            "simple_meaning": "The place where a piece of information comes from.",
+            "helper_meaning": "स्रोत"
+          },
+          {
+            "term": "Fine-tuning",
+            "simple_meaning": "Training a model again on new examples so the model itself changes.",
+            "helper_meaning": "मॉडल को दोबारा सिखाना"
+          },
+          {
+            "term": "Chunk",
+            "simple_meaning": "A small piece of a long document.",
+            "helper_meaning": "टुकड़ा"
+          },
+          {
+            "term": "Token",
+            "simple_meaning": "A small piece of text that an LLM reads and writes.",
+            "helper_meaning": "शब्द का छोटा टुकड़ा"
+          },
+          {
+            "term": "Index",
+            "simple_meaning": "An organised store that makes searching fast.",
+            "helper_meaning": "खोजने के लिए बनी सूची"
+          },
+          {
+            "term": "Embedding",
+            "simple_meaning": "A list of numbers that shows the meaning of text.",
+            "helper_meaning": "अर्थ बताने वाली संख्याओं की सूची"
+          },
+          {
+            "term": "Vector",
+            "simple_meaning": "A list of numbers.",
+            "helper_meaning": "संख्याओं की सूची"
+          },
+          {
+            "term": "Vector database",
+            "simple_meaning": "A store that keeps embeddings and quickly finds similar ones.",
+            "helper_meaning": "संख्याओं की सूचियों का डेटाबेस"
+          },
+          {
+            "term": "Keyword search",
+            "simple_meaning": "Search that finds text with the same words as the question.",
+            "helper_meaning": "शब्दों से खोज"
+          },
+          {
+            "term": "Retriever",
+            "simple_meaning": "The part of a RAG system that searches and returns useful chunks.",
+            "helper_meaning": "खोजकर लाने वाला हिस्सा"
+          },
+          {
+            "term": "Query",
+            "simple_meaning": "A question or search request given to a system.",
+            "helper_meaning": "सवाल या खोज"
+          },
+          {
+            "term": "Similarity search",
+            "simple_meaning": "Search that finds text closest in meaning to the question.",
+            "helper_meaning": "मिलती-जुलती चीज़ खोजना"
+          },
+          {
+            "term": "Top-k",
+            "simple_meaning": "The best matching chunks returned by the retriever.",
+            "helper_meaning": "सबसे मिलते-जुलते कुछ नतीजे"
+          },
+          {
+            "term": "Model weights",
+            "simple_meaning": "The numbers inside a model that store what it learned.",
+            "helper_meaning": "मॉडल के अंदर सीखी हुई संख्याएँ"
+          },
+          {
+            "term": "Context window",
+            "simple_meaning": "The amount of text an LLM can read at one time.",
+            "helper_meaning": "एक बार में पढ़ने की सीमा"
+          }
+        ],
+        "quiz": [
+          {
+            "question": "What does RAG do before the LLM writes an answer?",
+            "options": [
+              "It deletes the question.",
+              "It finds useful outside information and adds it to the prompt.",
+              "It permanently changes the model weights.",
+              "It stops the LLM from writing."
+            ],
+            "correct_option_index": 1,
+            "explanation": "RAG first retrieves useful information, augments the prompt with it, and then generates an answer."
+          },
+          {
+            "question": "What is the correct order of the five main RAG steps?",
+            "options": [
+              "Generate, retrieve, index, prepare, augment",
+              "Prepare, index, retrieve, augment, generate",
+              "Index, generate, prepare, retrieve, augment",
+              "Retrieve, generate, prepare, augment, index"
+            ],
+            "correct_option_index": 1,
+            "explanation": "The lesson teaches this order: prepare knowledge, index chunks, retrieve chunks, augment the prompt, and generate."
+          },
+          {
+            "question": "Why can RAG help with a new college notice?",
+            "options": [
+              "It searches an updated knowledge base when you ask.",
+              "It guesses the notice from memory.",
+              "It removes the context window.",
+              "It always retrains the LLM."
+            ],
+            "correct_option_index": 0,
+            "explanation": "RAG can use current text if the knowledge base has been updated with the new notice."
+          },
+          {
+            "question": "Which statement about RAG and fine-tuning is correct?",
+            "options": [
+              "Both always change model weights.",
+              "RAG changes the prompt, while fine-tuning changes the model itself.",
+              "RAG is another name for fine-tuning.",
+              "Fine-tuning only searches documents."
+            ],
+            "correct_option_index": 1,
+            "explanation": "RAG adds found information to the prompt for one question. Fine-tuning changes the model itself."
+          },
+          {
+            "question": "Which is a real limit of RAG?",
+            "options": [
+              "It cannot show sources.",
+              "It has no need for documents.",
+              "Wrong or old documents can lead to wrong answers.",
+              "It always removes hallucination fully."
+            ],
+            "correct_option_index": 2,
+            "explanation": "RAG depends on the knowledge base and retrieval quality. Wrong or old documents can still cause wrong answers."
+          }
+        ]
+      },
+      "evaluation": {
+        "rubric_version": 1,
+        "passed": true,
+        "results": [
+          {
+            "check_id": "ACC-1",
+            "dimension": "accuracy",
+            "title": "No false statements",
+            "method": "fact_check",
+            "severity": "critical",
+            "verdict": "PASS",
+            "reasoning": "None of the 29 checked claims is contradicted by the knowledge base.",
+            "evidence": [],
+            "fix_instruction": "",
+            "details": {
+              "claims": [
+                {
+                  "id": "C2",
+                  "kind": "concept",
+                  "claim": "RAG first retrieves useful information from documents before answering.",
+                  "quote": "In this method, the system first finds useful information from documents.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says RAG first retrieves relevant information from an outside knowledge source before the model answers.",
+                  "kb_chunk_ids": [
+                    "rag/02-what-is-rag#definition"
+                  ]
+                },
+                {
+                  "id": "C3",
+                  "kind": "concept",
+                  "claim": "RAG adds retrieved information to the question or prompt.",
+                  "quote": "Then it adds that information to the question.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says the retrieved chunks are added to the prompt together with the user's question.",
+                  "kb_chunk_ids": [
+                    "rag/02-what-is-rag#definition",
+                    "rag/04-how-rag-works#phase-2-step-4-augment"
+                  ]
+                },
+                {
+                  "id": "C4",
+                  "kind": "concept",
+                  "claim": "RAG then uses the AI model to generate the final answer.",
+                  "quote": "After that, the AI writes the answer.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says the LLM reads the augmented prompt and generates the answer.",
+                  "kb_chunk_ids": [
+                    "rag/02-what-is-rag#definition",
+                    "rag/04-how-rag-works#phase-2-step-5-generate"
+                  ]
+                },
+                {
+                  "id": "C5",
+                  "kind": "concept",
+                  "claim": "An LLM is an AI model that can understand and write language.",
+                  "quote": "A Large Language Model [बड़ा भाषा मॉडल], or LLM, is an AI model that can understand and write language.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says an LLM can understand a question and write a new answer using patterns learned from text.",
+                  "kb_chunk_ids": [
+                    "rag/01-llm-basics#what-a-large-language-model-is"
+                  ]
+                },
+                {
+                  "id": "C6",
+                  "kind": "concept",
+                  "claim": "A knowledge base is the document collection that RAG searches.",
+                  "quote": "A knowledge base [जानकारी का भंडार] is the document collection that RAG searches.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says the outside knowledge source RAG searches is often called a knowledge base and is a collection of documents.",
+                  "kb_chunk_ids": [
+                    "rag/02-what-is-rag#the-knowledge-base"
+                  ]
+                },
+                {
+                  "id": "C7",
+                  "kind": "concept",
+                  "claim": "The knowledge base is separate from the LLM.",
+                  "quote": "It is separate from the LLM.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base explicitly says the knowledge base is separate from the LLM.",
+                  "kb_chunk_ids": [
+                    "rag/02-what-is-rag#the-knowledge-base"
+                  ]
+                },
+                {
+                  "id": "C8",
+                  "kind": "concept",
+                  "claim": "The knowledge base can be updated without changing the model.",
+                  "quote": "You can update it without changing the model.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says it can be changed or updated at any time without changing the model.",
+                  "kb_chunk_ids": [
+                    "rag/02-what-is-rag#the-knowledge-base"
+                  ]
+                },
+                {
+                  "id": "C9",
+                  "kind": "concept",
+                  "claim": "An LLM may not know information published after its knowledge cutoff.",
+                  "quote": "By itself, an LLM may not know a notice published after that date.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says an LLM only knows what was in its training data up to its knowledge cutoff and may not know later events or documents.",
+                  "kb_chunk_ids": [
+                    "rag/03-why-rag#problem-1-outdated-knowledge-knowledge-cutoff",
+                    "rag/01-llm-basics#knowledge-cutoff"
+                  ]
+                },
+                {
+                  "id": "C10",
+                  "kind": "concept",
+                  "claim": "RAG can search the knowledge base at question time.",
+                  "quote": "RAG can search the knowledge base when you ask.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says RAG searches a knowledge base at the moment the question is asked.",
+                  "kb_chunk_ids": [
+                    "rag/03-why-rag#problem-1-outdated-knowledge-knowledge-cutoff",
+                    "rag/04-how-rag-works#two-phases"
+                  ]
+                },
+                {
+                  "id": "C11",
+                  "kind": "concept",
+                  "claim": "If the knowledge base is updated, RAG can use current information in answers.",
+                  "quote": "If the knowledge base is updated, the answer can use current text.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says if the knowledge base is kept up to date, the model can answer using current information.",
+                  "kb_chunk_ids": [
+                    "rag/03-why-rag#problem-1-outdated-knowledge-knowledge-cutoff"
+                  ]
+                },
+                {
+                  "id": "C12",
+                  "kind": "concept",
+                  "claim": "Hallucination is when an AI gives a false answer that sounds correct.",
+                  "quote": "Hallucination means an AI gives a false answer that sounds correct.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says hallucination is when LLMs produce answers that sound correct but are false.",
+                  "kb_chunk_ids": [
+                    "rag/03-why-rag#problem-2-hallucination"
+                  ]
+                },
+                {
+                  "id": "C13",
+                  "kind": "concept",
+                  "claim": "RAG provides real retrieved text for the LLM to use.",
+                  "quote": "RAG gives the LLM real text to use.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says relevant text is given inside the prompt and the retrieved chunks are added to it for the model to use.",
+                  "kb_chunk_ids": [
+                    "rag/03-why-rag#problem-2-hallucination",
+                    "rag/04-how-rag-works#phase-2-step-4-augment"
+                  ]
+                },
+                {
+                  "id": "C14",
+                  "kind": "concept",
+                  "claim": "RAG can reduce the chance of made-up answers.",
+                  "quote": "This reduces the chance of a made-up answer.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says giving the model relevant, reliable text reduces hallucination.",
+                  "kb_chunk_ids": [
+                    "rag/03-why-rag#problem-2-hallucination"
+                  ]
+                },
+                {
+                  "id": "C15",
+                  "kind": "concept",
+                  "claim": "A general LLM may not have access to private or specific documents.",
+                  "quote": "A general LLM may not have your school timetable or shop return policy.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says a general LLM may not know documents or facts that were not in its training data, such as a school timetable or shop return policy.",
+                  "kb_chunk_ids": [
+                    "rag/03-why-rag#problem-1-outdated-knowledge-knowledge-cutoff"
+                  ]
+                },
+                {
+                  "id": "C16",
+                  "kind": "concept",
+                  "claim": "With RAG, private or specific documents can be searched when answering.",
+                  "quote": "With RAG, those documents can be searched at answer time.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says RAG searches a knowledge base when the question is asked, so those documents can be searched at answer time.",
+                  "kb_chunk_ids": [
+                    "rag/03-why-rag#problem-1-outdated-knowledge-knowledge-cutoff",
+                    "rag/04-how-rag-works#two-phases"
+                  ]
+                },
+                {
+                  "id": "C17",
+                  "kind": "concept",
+                  "claim": "RAG does not make the LLM permanently learn the retrieved documents.",
+                  "quote": "The LLM does not permanently learn them.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says the knowledge base can be updated without changing the model, which means the LLM does not permanently learn those documents.",
+                  "kb_chunk_ids": [
+                    "rag/02-what-is-rag#the-knowledge-base"
+                  ]
+                },
+                {
+                  "id": "C18",
+                  "kind": "concept",
+                  "claim": "A RAG answer can include the source of the information.",
+                  "quote": "A RAG answer can show the source.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says many RAG systems return the sources of the chunks so users can check the answer.",
+                  "kb_chunk_ids": [
+                    "rag/04-how-rag-works#phase-2-step-5-generate"
+                  ]
+                },
+                {
+                  "id": "C19",
+                  "kind": "concept",
+                  "claim": "Adding documents to a knowledge base is usually cheaper and faster than fine-tuning or retraining.",
+                  "quote": "Adding documents to a knowledge base is usually cheaper and faster than fine-tuning or retraining.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says adding or updating documents in the knowledge base is usually much cheaper and faster than retraining or fine-tuning.",
+                  "kb_chunk_ids": [
+                    "rag/03-why-rag#benefit-cheaper-and-faster-updates"
+                  ]
+                },
+                {
+                  "id": "C20",
+                  "kind": "concept",
+                  "claim": "RAG has five main steps.",
+                  "quote": "RAG has five main steps.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base describes RAG in five steps across indexing and query time, ending with generation.",
+                  "kb_chunk_ids": [
+                    "rag/04-how-rag-works#two-phases",
+                    "rag/04-how-rag-works#phase-1-step-1-collect-and-split-the-documents",
+                    "rag/04-how-rag-works#phase-2-step-3-retrieve",
+                    "rag/04-how-rag-works#phase-2-step-4-augment",
+                    "rag/04-how-rag-works#phase-2-step-5-generate"
+                  ]
+                },
+                {
+                  "id": "C21",
+                  "kind": "concept",
+                  "claim": "The first RAG step is to prepare the knowledge base documents.",
+                  "quote": "Step 1 is prepare the knowledge.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says step 1 is to collect the useful documents and split long documents into chunks.",
+                  "kb_chunk_ids": [
+                    "rag/04-how-rag-works#phase-1-step-1-collect-and-split-the-documents"
+                  ]
+                },
+                {
+                  "id": "C22",
+                  "kind": "concept",
+                  "claim": "Long documents are split into smaller chunks for RAG.",
+                  "quote": "Long documents are split into chunks.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says long documents are split into smaller pieces called chunks.",
+                  "kb_chunk_ids": [
+                    "rag/04-how-rag-works#phase-1-step-1-collect-and-split-the-documents"
+                  ]
+                },
+                {
+                  "id": "C23",
+                  "kind": "concept",
+                  "claim": "An index is an organized store that makes search fast.",
+                  "quote": "An index [खोजने के लिए बनी सूची] is an organised store that makes search fast.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says an index is an organized store that makes search quick.",
+                  "kb_chunk_ids": [
+                    "rag/04-how-rag-works#phase-1-step-2-index-the-chunks"
+                  ]
+                },
+                {
+                  "id": "C24",
+                  "kind": "concept",
+                  "claim": "In a common RAG method, each chunk is converted into an embedding.",
+                  "quote": "In a common method, each chunk becomes an embedding.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says each chunk is converted into an embedding in the common approach.",
+                  "kb_chunk_ids": [
+                    "rag/04-how-rag-works#phase-1-step-2-index-the-chunks"
+                  ]
+                },
+                {
+                  "id": "C25",
+                  "kind": "concept",
+                  "claim": "A vector database stores embeddings with their associated text.",
+                  "quote": "A vector database [संख्याओं की सूचियों का डेटाबेस] stores embeddings with their text.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says embeddings are stored in a vector database together with the text.",
+                  "kb_chunk_ids": [
+                    "rag/04-how-rag-works#phase-1-step-2-index-the-chunks"
+                  ]
+                },
+                {
+                  "id": "C26",
+                  "kind": "concept",
+                  "claim": "Some RAG systems also use keyword search.",
+                  "quote": "Some systems also use keyword search.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says some systems use keyword search in addition to embeddings.",
+                  "kb_chunk_ids": [
+                    "rag/04-how-rag-works#phase-1-step-2-index-the-chunks"
+                  ]
+                },
+                {
+                  "id": "C27",
+                  "kind": "concept",
+                  "claim": "A retriever is the part of the system that searches for and returns chunks.",
+                  "quote": "A retriever [खोजकर लाने वाला हिस्सा] is the part that searches and returns chunks.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says the retriever searches the index and returns the most relevant chunks.",
+                  "kb_chunk_ids": [
+                    "rag/04-how-rag-works#phase-2-step-3-retrieve"
+                  ]
+                },
+                {
+                  "id": "C28",
+                  "kind": "concept",
+                  "claim": "Similarity search finds chunks closest in meaning to the query.",
+                  "quote": "Similarity search [मिलती-जुलती चीज़ खोजना] finds chunks closest in meaning to the query.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says similarity search returns the chunks whose embeddings are closest to the question's embedding.",
+                  "kb_chunk_ids": [
+                    "rag/05-embeddings-and-search#similarity-search"
+                  ]
+                },
+                {
+                  "id": "C29",
+                  "kind": "concept",
+                  "claim": "RAG does not retrain the LLM.",
+                  "quote": "RAG does not retrain the LLM.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says RAG updates knowledge by changing documents in the knowledge base instead of retraining or fine-tuning the LLM.",
+                  "kb_chunk_ids": [
+                    "rag/03-why-rag#benefit-cheaper-and-faster-updates"
+                  ]
+                },
+                {
+                  "id": "C30",
+                  "kind": "concept",
+                  "claim": "The model itself does not change during the RAG steps.",
+                  "quote": "The model itself does not change in these steps.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says the model itself does not change during these RAG steps.",
+                  "kb_chunk_ids": [
+                    "rag/04-how-rag-works#two-phases",
+                    "rag/04-how-rag-works#phase-2-step-5-generate"
+                  ]
+                }
+              ],
+              "forced": false,
+              "agent_steps": 3
+            },
+            "evidence_verified": true,
+            "votes": [],
+            "latency_ms": 21604
+          },
+          {
+            "check_id": "ACC-2",
+            "dimension": "accuracy",
+            "title": "No invented specifics",
+            "method": "fact_check",
+            "severity": "critical",
+            "verdict": "PASS",
+            "reasoning": "All 0 specific facts (numbers, dates, names) are supported by the knowledge base.",
+            "evidence": [],
+            "fix_instruction": "",
+            "details": {
+              "claims": [
+                {
+                  "id": "C2",
+                  "kind": "concept",
+                  "claim": "RAG first retrieves useful information from documents before answering.",
+                  "quote": "In this method, the system first finds useful information from documents.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says RAG first retrieves relevant information from an outside knowledge source before the model answers.",
+                  "kb_chunk_ids": [
+                    "rag/02-what-is-rag#definition"
+                  ]
+                },
+                {
+                  "id": "C3",
+                  "kind": "concept",
+                  "claim": "RAG adds retrieved information to the question or prompt.",
+                  "quote": "Then it adds that information to the question.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says the retrieved chunks are added to the prompt together with the user's question.",
+                  "kb_chunk_ids": [
+                    "rag/02-what-is-rag#definition",
+                    "rag/04-how-rag-works#phase-2-step-4-augment"
+                  ]
+                },
+                {
+                  "id": "C4",
+                  "kind": "concept",
+                  "claim": "RAG then uses the AI model to generate the final answer.",
+                  "quote": "After that, the AI writes the answer.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says the LLM reads the augmented prompt and generates the answer.",
+                  "kb_chunk_ids": [
+                    "rag/02-what-is-rag#definition",
+                    "rag/04-how-rag-works#phase-2-step-5-generate"
+                  ]
+                },
+                {
+                  "id": "C5",
+                  "kind": "concept",
+                  "claim": "An LLM is an AI model that can understand and write language.",
+                  "quote": "A Large Language Model [बड़ा भाषा मॉडल], or LLM, is an AI model that can understand and write language.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says an LLM can understand a question and write a new answer using patterns learned from text.",
+                  "kb_chunk_ids": [
+                    "rag/01-llm-basics#what-a-large-language-model-is"
+                  ]
+                },
+                {
+                  "id": "C6",
+                  "kind": "concept",
+                  "claim": "A knowledge base is the document collection that RAG searches.",
+                  "quote": "A knowledge base [जानकारी का भंडार] is the document collection that RAG searches.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says the outside knowledge source RAG searches is often called a knowledge base and is a collection of documents.",
+                  "kb_chunk_ids": [
+                    "rag/02-what-is-rag#the-knowledge-base"
+                  ]
+                },
+                {
+                  "id": "C7",
+                  "kind": "concept",
+                  "claim": "The knowledge base is separate from the LLM.",
+                  "quote": "It is separate from the LLM.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base explicitly says the knowledge base is separate from the LLM.",
+                  "kb_chunk_ids": [
+                    "rag/02-what-is-rag#the-knowledge-base"
+                  ]
+                },
+                {
+                  "id": "C8",
+                  "kind": "concept",
+                  "claim": "The knowledge base can be updated without changing the model.",
+                  "quote": "You can update it without changing the model.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says it can be changed or updated at any time without changing the model.",
+                  "kb_chunk_ids": [
+                    "rag/02-what-is-rag#the-knowledge-base"
+                  ]
+                },
+                {
+                  "id": "C9",
+                  "kind": "concept",
+                  "claim": "An LLM may not know information published after its knowledge cutoff.",
+                  "quote": "By itself, an LLM may not know a notice published after that date.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says an LLM only knows what was in its training data up to its knowledge cutoff and may not know later events or documents.",
+                  "kb_chunk_ids": [
+                    "rag/03-why-rag#problem-1-outdated-knowledge-knowledge-cutoff",
+                    "rag/01-llm-basics#knowledge-cutoff"
+                  ]
+                },
+                {
+                  "id": "C10",
+                  "kind": "concept",
+                  "claim": "RAG can search the knowledge base at question time.",
+                  "quote": "RAG can search the knowledge base when you ask.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says RAG searches a knowledge base at the moment the question is asked.",
+                  "kb_chunk_ids": [
+                    "rag/03-why-rag#problem-1-outdated-knowledge-knowledge-cutoff",
+                    "rag/04-how-rag-works#two-phases"
+                  ]
+                },
+                {
+                  "id": "C11",
+                  "kind": "concept",
+                  "claim": "If the knowledge base is updated, RAG can use current information in answers.",
+                  "quote": "If the knowledge base is updated, the answer can use current text.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says if the knowledge base is kept up to date, the model can answer using current information.",
+                  "kb_chunk_ids": [
+                    "rag/03-why-rag#problem-1-outdated-knowledge-knowledge-cutoff"
+                  ]
+                },
+                {
+                  "id": "C12",
+                  "kind": "concept",
+                  "claim": "Hallucination is when an AI gives a false answer that sounds correct.",
+                  "quote": "Hallucination means an AI gives a false answer that sounds correct.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says hallucination is when LLMs produce answers that sound correct but are false.",
+                  "kb_chunk_ids": [
+                    "rag/03-why-rag#problem-2-hallucination"
+                  ]
+                },
+                {
+                  "id": "C13",
+                  "kind": "concept",
+                  "claim": "RAG provides real retrieved text for the LLM to use.",
+                  "quote": "RAG gives the LLM real text to use.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says relevant text is given inside the prompt and the retrieved chunks are added to it for the model to use.",
+                  "kb_chunk_ids": [
+                    "rag/03-why-rag#problem-2-hallucination",
+                    "rag/04-how-rag-works#phase-2-step-4-augment"
+                  ]
+                },
+                {
+                  "id": "C14",
+                  "kind": "concept",
+                  "claim": "RAG can reduce the chance of made-up answers.",
+                  "quote": "This reduces the chance of a made-up answer.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says giving the model relevant, reliable text reduces hallucination.",
+                  "kb_chunk_ids": [
+                    "rag/03-why-rag#problem-2-hallucination"
+                  ]
+                },
+                {
+                  "id": "C15",
+                  "kind": "concept",
+                  "claim": "A general LLM may not have access to private or specific documents.",
+                  "quote": "A general LLM may not have your school timetable or shop return policy.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says a general LLM may not know documents or facts that were not in its training data, such as a school timetable or shop return policy.",
+                  "kb_chunk_ids": [
+                    "rag/03-why-rag#problem-1-outdated-knowledge-knowledge-cutoff"
+                  ]
+                },
+                {
+                  "id": "C16",
+                  "kind": "concept",
+                  "claim": "With RAG, private or specific documents can be searched when answering.",
+                  "quote": "With RAG, those documents can be searched at answer time.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says RAG searches a knowledge base when the question is asked, so those documents can be searched at answer time.",
+                  "kb_chunk_ids": [
+                    "rag/03-why-rag#problem-1-outdated-knowledge-knowledge-cutoff",
+                    "rag/04-how-rag-works#two-phases"
+                  ]
+                },
+                {
+                  "id": "C17",
+                  "kind": "concept",
+                  "claim": "RAG does not make the LLM permanently learn the retrieved documents.",
+                  "quote": "The LLM does not permanently learn them.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says the knowledge base can be updated without changing the model, which means the LLM does not permanently learn those documents.",
+                  "kb_chunk_ids": [
+                    "rag/02-what-is-rag#the-knowledge-base"
+                  ]
+                },
+                {
+                  "id": "C18",
+                  "kind": "concept",
+                  "claim": "A RAG answer can include the source of the information.",
+                  "quote": "A RAG answer can show the source.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says many RAG systems return the sources of the chunks so users can check the answer.",
+                  "kb_chunk_ids": [
+                    "rag/04-how-rag-works#phase-2-step-5-generate"
+                  ]
+                },
+                {
+                  "id": "C19",
+                  "kind": "concept",
+                  "claim": "Adding documents to a knowledge base is usually cheaper and faster than fine-tuning or retraining.",
+                  "quote": "Adding documents to a knowledge base is usually cheaper and faster than fine-tuning or retraining.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says adding or updating documents in the knowledge base is usually much cheaper and faster than retraining or fine-tuning.",
+                  "kb_chunk_ids": [
+                    "rag/03-why-rag#benefit-cheaper-and-faster-updates"
+                  ]
+                },
+                {
+                  "id": "C20",
+                  "kind": "concept",
+                  "claim": "RAG has five main steps.",
+                  "quote": "RAG has five main steps.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base describes RAG in five steps across indexing and query time, ending with generation.",
+                  "kb_chunk_ids": [
+                    "rag/04-how-rag-works#two-phases",
+                    "rag/04-how-rag-works#phase-1-step-1-collect-and-split-the-documents",
+                    "rag/04-how-rag-works#phase-2-step-3-retrieve",
+                    "rag/04-how-rag-works#phase-2-step-4-augment",
+                    "rag/04-how-rag-works#phase-2-step-5-generate"
+                  ]
+                },
+                {
+                  "id": "C21",
+                  "kind": "concept",
+                  "claim": "The first RAG step is to prepare the knowledge base documents.",
+                  "quote": "Step 1 is prepare the knowledge.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says step 1 is to collect the useful documents and split long documents into chunks.",
+                  "kb_chunk_ids": [
+                    "rag/04-how-rag-works#phase-1-step-1-collect-and-split-the-documents"
+                  ]
+                },
+                {
+                  "id": "C22",
+                  "kind": "concept",
+                  "claim": "Long documents are split into smaller chunks for RAG.",
+                  "quote": "Long documents are split into chunks.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says long documents are split into smaller pieces called chunks.",
+                  "kb_chunk_ids": [
+                    "rag/04-how-rag-works#phase-1-step-1-collect-and-split-the-documents"
+                  ]
+                },
+                {
+                  "id": "C23",
+                  "kind": "concept",
+                  "claim": "An index is an organized store that makes search fast.",
+                  "quote": "An index [खोजने के लिए बनी सूची] is an organised store that makes search fast.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says an index is an organized store that makes search quick.",
+                  "kb_chunk_ids": [
+                    "rag/04-how-rag-works#phase-1-step-2-index-the-chunks"
+                  ]
+                },
+                {
+                  "id": "C24",
+                  "kind": "concept",
+                  "claim": "In a common RAG method, each chunk is converted into an embedding.",
+                  "quote": "In a common method, each chunk becomes an embedding.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says each chunk is converted into an embedding in the common approach.",
+                  "kb_chunk_ids": [
+                    "rag/04-how-rag-works#phase-1-step-2-index-the-chunks"
+                  ]
+                },
+                {
+                  "id": "C25",
+                  "kind": "concept",
+                  "claim": "A vector database stores embeddings with their associated text.",
+                  "quote": "A vector database [संख्याओं की सूचियों का डेटाबेस] stores embeddings with their text.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says embeddings are stored in a vector database together with the text.",
+                  "kb_chunk_ids": [
+                    "rag/04-how-rag-works#phase-1-step-2-index-the-chunks"
+                  ]
+                },
+                {
+                  "id": "C26",
+                  "kind": "concept",
+                  "claim": "Some RAG systems also use keyword search.",
+                  "quote": "Some systems also use keyword search.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says some systems use keyword search in addition to embeddings.",
+                  "kb_chunk_ids": [
+                    "rag/04-how-rag-works#phase-1-step-2-index-the-chunks"
+                  ]
+                },
+                {
+                  "id": "C27",
+                  "kind": "concept",
+                  "claim": "A retriever is the part of the system that searches for and returns chunks.",
+                  "quote": "A retriever [खोजकर लाने वाला हिस्सा] is the part that searches and returns chunks.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says the retriever searches the index and returns the most relevant chunks.",
+                  "kb_chunk_ids": [
+                    "rag/04-how-rag-works#phase-2-step-3-retrieve"
+                  ]
+                },
+                {
+                  "id": "C28",
+                  "kind": "concept",
+                  "claim": "Similarity search finds chunks closest in meaning to the query.",
+                  "quote": "Similarity search [मिलती-जुलती चीज़ खोजना] finds chunks closest in meaning to the query.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says similarity search returns the chunks whose embeddings are closest to the question's embedding.",
+                  "kb_chunk_ids": [
+                    "rag/05-embeddings-and-search#similarity-search"
+                  ]
+                },
+                {
+                  "id": "C29",
+                  "kind": "concept",
+                  "claim": "RAG does not retrain the LLM.",
+                  "quote": "RAG does not retrain the LLM.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says RAG updates knowledge by changing documents in the knowledge base instead of retraining or fine-tuning the LLM.",
+                  "kb_chunk_ids": [
+                    "rag/03-why-rag#benefit-cheaper-and-faster-updates"
+                  ]
+                },
+                {
+                  "id": "C30",
+                  "kind": "concept",
+                  "claim": "The model itself does not change during the RAG steps.",
+                  "quote": "The model itself does not change in these steps.",
+                  "verdict": "SUPPORTED",
+                  "explanation": "The knowledge base says the model itself does not change during these RAG steps.",
+                  "kb_chunk_ids": [
+                    "rag/04-how-rag-works#two-phases",
+                    "rag/04-how-rag-works#phase-2-step-5-generate"
+                  ]
+                }
+              ],
+              "forced": false,
+              "agent_steps": 3
+            },
+            "evidence_verified": true,
+            "votes": [],
+            "latency_ms": 21604
+          },
+          {
+            "check_id": "ACC-3",
+            "dimension": "accuracy",
+            "title": "Helper-language hints are correct",
+            "method": "llm_judge",
+            "severity": "major",
+            "verdict": "PASS",
+            "reasoning": "All Hindi hints are in Hindi script and match the English terms in this lesson's context. The phrases are natural and use everyday words a school graduate in India should understand. I did not find any misleading, non-Hindi, or unusually bookish hint.",
+            "evidence": [
+              "कृत्रिम बुद्धि",
+              "जानकारी खोजकर, उसे जोड़कर जवाब बनाने का तरीका",
+              "मॉडल को दिया गया सवाल और निर्देश"
+            ],
+            "fix_instruction": "",
+            "details": {
+              "votes": 1,
+              "decided_by": "gpt-5.4-mini"
+            },
+            "evidence_verified": true,
+            "votes": [],
+            "latency_ms": 3092
+          },
+          {
+            "check_id": "LANG-1",
+            "dimension": "language",
+            "title": "Easy reading level",
+            "method": "deterministic",
+            "severity": "major",
+            "verdict": "PASS",
+            "reasoning": "Flesch-Kincaid grade is 4.95 (limit 8.0); average sentence 7.64 words.",
+            "evidence": [],
+            "fix_instruction": "",
+            "details": {
+              "limit": 8.0,
+              "fk_grade": 4.95
+            },
+            "evidence_verified": null,
+            "votes": [],
+            "latency_ms": 31
+          },
+          {
+            "check_id": "LANG-2",
+            "dimension": "language",
+            "title": "Short sentences",
+            "method": "deterministic",
+            "severity": "major",
+            "verdict": "PASS",
+            "reasoning": "Sentence lengths are within limits.",
+            "evidence": [],
+            "fix_instruction": "",
+            "details": {
+              "long_sentences": 0,
+              "avg_sentence_words": 7.64,
+              "max_sentence_words": 18
+            },
+            "evidence_verified": null,
+            "votes": [],
+            "latency_ms": 31
+          },
+          {
+            "check_id": "LANG-3",
+            "dimension": "language",
+            "title": "Everyday vocabulary",
+            "method": "deterministic",
+            "severity": "major",
+            "verdict": "PASS",
+            "reasoning": "9 distinct difficult word(s) outside the glossary and jargon list (limit 10): confuse, correctness, distract, misconception, mislead, retrain, retraining, retrains, timetable.",
+            "evidence": [
+              "confuse, correctness, distract, misconception, mislead, retrain, retraining, retrains, timetable"
+            ],
+            "fix_instruction": "",
+            "details": {
+              "limit": 10,
+              "difficult_words": [
+                "confuse",
+                "correctness",
+                "distract",
+                "misconception",
+                "mislead",
+                "retrain",
+                "retraining",
+                "retrains",
+                "timetable"
+              ]
+            },
+            "evidence_verified": null,
+            "votes": [],
+            "latency_ms": 31
+          },
+          {
+            "check_id": "LANG-4",
+            "dimension": "language",
+            "title": "No idioms or assumed knowledge",
+            "method": "llm_judge",
+            "severity": "major",
+            "verdict": "PASS",
+            "reasoning": "The lesson uses plain, literal English and does not rely on Western-only cultural references. Its examples are familiar for learners in India, such as school, college, scholarship notice, and sports day. It also explains key AI terms before using them, so it does not assume prior knowledge of programming, machine learning, or AI.",
+            "evidence": [
+              "“In this method, the system first finds useful information from documents.”",
+              "“Use a school exam comparison to remember the parts.”",
+              "“A **prompt** [मॉडल को दिया गया सवाल और निर्देश] is the text given to the model.”"
+            ],
+            "fix_instruction": "",
+            "details": {
+              "votes": 1,
+              "decided_by": "gpt-5.4-mini"
+            },
+            "evidence_verified": true,
+            "votes": [],
+            "latency_ms": 4810
+          },
+          {
+            "check_id": "LANG-5",
+            "dimension": "language",
+            "title": "Right length",
+            "method": "deterministic",
+            "severity": "major",
+            "verdict": "PASS",
+            "reasoning": "The lesson body has 1330 words (allowed 900-2000).",
+            "evidence": [],
+            "fix_instruction": "",
+            "details": {
+              "word_count": 1330
+            },
+            "evidence_verified": null,
+            "votes": [],
+            "latency_ms": 31
+          },
+          {
+            "check_id": "EX-1",
+            "dimension": "examples",
+            "title": "Concrete worked example",
+            "method": "llm_judge",
+            "severity": "major",
+            "verdict": "PASS",
+            "reasoning": "The lesson includes a specific end-to-end worked example using realistic college notice content, not a placeholder. It clearly shows the exact user question, the retrieved information from College Notice A, the augmented prompt with that information added, and the final answer that uses it. All required parts are present.",
+            "evidence": [
+              "User question: “What is the last date to submit the scholarship form, and where should I submit it?”",
+              "[Source: College Notice A]\nScholarship form submission: Students must submit the scholarship form by 15 August.",
+              "“The last date to submit the scholarship form is 15 August. You should submit it at the college office. Source: College Notice A.”"
+            ],
+            "fix_instruction": "",
+            "details": {
+              "votes": 1,
+              "decided_by": "gpt-5.4-mini"
+            },
+            "evidence_verified": true,
+            "votes": [],
+            "latency_ms": 5157
+          },
+          {
+            "check_id": "EX-2",
+            "dimension": "examples",
+            "title": "Relatable Indian analogy, mapped",
+            "method": "llm_judge",
+            "severity": "major",
+            "verdict": "PASS",
+            "reasoning": "The lesson uses an everyday analogy familiar to Indian learners: a school exam comparison with a textbook. It explicitly maps multiple parts of the analogy to RAG parts, including textbook to knowledge base, page finding to retrieval, adding lines to augmentation, and writing the answer to generation. This satisfies the checkpoint.",
+            "evidence": [
+              "Use a school exam comparison to remember the parts.",
+              "a textbook represents the knowledge base. Finding the correct page represents retrieval. Adding useful lines to the question represents augmentation. Writing the final answer represents generation.",
+              "the model itself does not change."
+            ],
+            "fix_instruction": "",
+            "details": {
+              "votes": 1,
+              "decided_by": "gpt-5.4-mini"
+            },
+            "evidence_verified": true,
+            "votes": [],
+            "latency_ms": 6697
+          },
+          {
+            "check_id": "JAR-1",
+            "dimension": "jargon",
+            "title": "Glossary covers all jargon",
+            "method": "deterministic",
+            "severity": "major",
+            "verdict": "PASS",
+            "reasoning": "24 technical term(s) used; all have glossary entries.",
+            "evidence": [],
+            "fix_instruction": "",
+            "details": {
+              "missing": [],
+              "terms_used": [
+                "artificial intelligence",
+                "augmentation",
+                "chunk",
+                "context window",
+                "embedding",
+                "fine-tuning",
+                "generation",
+                "hallucination",
+                "index",
+                "keyword search",
+                "knowledge base",
+                "knowledge cutoff",
+                "large language model",
+                "model weights",
+                "prompt",
+                "query",
+                "retrieval",
+                "retrieval-augmented generation",
+                "similarity search",
+                "token",
+                "top-k",
+                "training data",
+                "vector",
+                "vector database"
+              ]
+            },
+            "evidence_verified": null,
+            "votes": [],
+            "latency_ms": 31
+          },
+          {
+            "check_id": "JAR-2",
+            "dimension": "jargon",
+            "title": "Terms explained at first use",
+            "method": "llm_judge",
+            "severity": "major",
+            "verdict": "PASS",
+            "reasoning": "Every major technical term is introduced with a simple explanation the first time it appears in the lesson body. I did not find any technical term that is used before being explained, and the glossary is not needed for first-use understanding. The explanations are also simple and do not depend on unexplained jargon.",
+            "evidence": [
+              "**Retrieval-Augmented Generation** [जानकारी खोजकर, उसे जोड़कर जवाब बनाने का तरीका] is a method for AI answers.",
+              "A **Large Language Model** [बड़ा भाषा मॉडल], or LLM, is an AI model that can understand and write language.",
+              "A **prompt** [मॉडल को दिया गया सवाल और निर्देश] is the text given to the model."
+            ],
+            "fix_instruction": "",
+            "details": {
+              "votes": 1,
+              "decided_by": "gpt-5.4-mini"
+            },
+            "evidence_verified": true,
+            "votes": [],
+            "latency_ms": 5410
+          },
+          {
+            "check_id": "JAR-3",
+            "dimension": "jargon",
+            "title": "Acronyms expanded",
+            "method": "deterministic",
+            "severity": "major",
+            "verdict": "PASS",
+            "reasoning": "Every acronym is written out in full at its first use.",
+            "evidence": [],
+            "fix_instruction": "",
+            "details": {
+              "acronyms": [
+                "AI",
+                "LLM",
+                "RAG"
+              ],
+              "unexpanded": []
+            },
+            "evidence_verified": null,
+            "votes": [],
+            "latency_ms": 31
+          },
+          {
+            "check_id": "JAR-4",
+            "dimension": "jargon",
+            "title": "Helper-language hint for every key word",
+            "method": "deterministic",
+            "severity": "major",
+            "verdict": "PASS",
+            "reasoning": "All 26 glossary entries have a Hindi meaning.",
+            "evidence": [],
+            "fix_instruction": "",
+            "details": {
+              "missing": [],
+              "language": "Hindi"
+            },
+            "evidence_verified": null,
+            "votes": [],
+            "latency_ms": 31
+          },
+          {
+            "check_id": "COV-1",
+            "dimension": "coverage",
+            "title": "Explains what it is",
+            "method": "llm_judge",
+            "severity": "critical",
+            "verdict": "PASS",
+            "reasoning": "The lesson gives an early, simple definition in the Hook and repeats it clearly in the “What RAG Is” section. It correctly explains that the system retrieves useful outside information, adds it to the question/prompt, and then the model generates the answer. The wording is easy to follow and the needed terms are introduced or translated with hints.",
+            "evidence": [
+              "Retrieval-Augmented Generation [जानकारी खोजकर, उसे जोड़कर जवाब बनाने का तरीका] is a method for AI answers.",
+              "In this method, the system first finds useful information from documents. Then it adds that information to the question. After that, the AI writes the answer.",
+              "So, RAG has a simple meaning. Before the LLM answers, the system finds useful outside information."
+            ],
+            "fix_instruction": "",
+            "details": {
+              "votes": 1,
+              "decided_by": "gpt-5.4-mini"
+            },
+            "evidence_verified": true,
+            "votes": [],
+            "latency_ms": 7190
+          },
+          {
+            "check_id": "COV-2",
+            "dimension": "coverage",
+            "title": "Explains why it matters",
+            "method": "llm_judge",
+            "severity": "critical",
+            "verdict": "PASS",
+            "reasoning": "The lesson explains multiple reasons RAG matters, not just by naming them. It gives concrete consequences for at least two: without updated knowledge, an LLM can give a wrong answer about a new rule, and hallucination can mislead a student about a deadline. It also explains trust with a source-checking example, so the checkpoint is fully met.",
+            "evidence": [
+              "By itself, an LLM may not know a notice published after that date. The result can be a wrong answer about a new rule.",
+              "Hallucination means an AI gives a false answer that sounds correct. This can mislead a student about a deadline.",
+              "RAG can show the source. Then you can check the notice yourself."
+            ],
+            "fix_instruction": "",
+            "details": {
+              "votes": 1,
+              "decided_by": "gpt-5.4-mini"
+            },
+            "evidence_verified": true,
+            "votes": [],
+            "latency_ms": 9415
+          },
+          {
+            "check_id": "COV-3",
+            "dimension": "coverage",
+            "title": "Explains how it works, in order",
+            "method": "llm_judge",
+            "severity": "critical",
+            "verdict": "PASS",
+            "reasoning": "The lesson clearly explains all five required RAG steps in the correct order under \"How RAG Works Step by Step.\" It covers prepare, index, retrieve, augment, and generate, and the surrounding text correctly explains what happens at each step. No step is missing or described out of order.",
+            "evidence": [
+              "Step 1 is prepare the knowledge.",
+              "Step 2 is index the chunks.",
+              "Step 3 is retrieve."
+            ],
+            "fix_instruction": "",
+            "details": {
+              "votes": 1,
+              "decided_by": "gpt-5.4-mini"
+            },
+            "evidence_verified": true,
+            "votes": [],
+            "latency_ms": 7204
+          },
+          {
+            "check_id": "COV-4",
+            "dimension": "coverage",
+            "title": "Limits and misconceptions",
+            "method": "llm_judge",
+            "severity": "major",
+            "verdict": "PASS",
+            "reasoning": "The lesson states multiple limitations, including that the context window is limited and that answer quality depends on retrieval quality. It also explicitly corrects misconceptions, for example saying RAG does not retrain the LLM and that RAG is not the same as fine-tuning. Therefore, the checkpoint is met.",
+            "evidence": [
+              "RAG has limits.",
+              "RAG does not retrain the LLM.",
+              "The context window is limited."
+            ],
+            "fix_instruction": "",
+            "details": {
+              "votes": 1,
+              "decided_by": "gpt-5.4-mini"
+            },
+            "evidence_verified": true,
+            "votes": [],
+            "latency_ms": 8805
+          },
+          {
+            "check_id": "COV-5",
+            "dimension": "coverage",
+            "title": "Simulated learner passes",
+            "method": "learner",
+            "severity": "major",
+            "verdict": "PASS",
+            "reasoning": "The simulated learner answered 5 of 6 held-out questions correctly from the lesson alone (need 5).",
+            "evidence": [
+              "Give one real-life example where RAG is useful. -> learner: A college scholarship notice is one real-life example where RAG is useful."
+            ],
+            "fix_instruction": "",
+            "details": {
+              "score": 5,
+              "needed": 5,
+              "answers": [
+                {
+                  "answer": "RAG stands for Retrieval-Augmented Generation.",
+                  "correct": true,
+                  "question": "What does RAG stand for?",
+                  "question_id": "Q1",
+                  "grader_reason": "Correctly expands RAG as Retrieval-Augmented Generation.",
+                  "support_quote": "Retrieval-Augmented Generation [जानकारी खोजकर, उसे जोड़कर जवाब बनाने का तरीका] is a method for AI answers.",
+                  "supported_by_lesson": true
+                },
+                {
+                  "answer": "An LLM may not know a recent thing because its training data has a knowledge cutoff, so it can give a wrong answer about new information.",
+                  "correct": true,
+                  "question": "Why might an LLM give an outdated or wrong answer about something that happened recently?",
+                  "question_id": "Q2",
+                  "grader_reason": "Correctly says the LLM may be wrong about recent events because its training data has a knowledge cutoff and lacks newer information.",
+                  "support_quote": "By itself, an LLM may not know a notice published after that date.",
+                  "supported_by_lesson": true
+                },
+                {
+                  "answer": "Before the LLM writes the answer, the system finds useful outside information and adds that information to the prompt with the question.",
+                  "correct": true,
+                  "question": "In RAG, what happens before the LLM writes its answer?",
+                  "question_id": "Q3",
+                  "grader_reason": "Correctly says the system finds relevant outside information and adds it to the prompt before the LLM answers.",
+                  "support_quote": "In this method, the system first finds useful information from documents. Then it adds that information to the question. After that, the AI writes the answer.",
+                  "supported_by_lesson": true
+                },
+                {
+                  "answer": "The right order is: find relevant information, add the found information to the prompt, and generate the answer.",
+                  "correct": true,
+                  "question": "Put these steps in the right order - generate the answer; add the found information to the prompt; find relevant information.",
+                  "question_id": "Q4",
+                  "grader_reason": "Correctly gives the order: retrieve information, add it to the prompt, then generate the answer.",
+                  "support_quote": "Step 3 is retrieve. ... Step 4 is augment. ... Step 5 is generate.",
+                  "supported_by_lesson": true
+                },
+                {
+                  "answer": "No, RAG does not permanently change or retrain the LLM. It only changes the prompt for one question.",
+                  "correct": true,
+                  "question": "Does RAG permanently change or retrain the LLM? Explain.",
+                  "question_id": "Q5",
+                  "grader_reason": "Correctly says RAG does not permanently change or retrain the LLM; it only affects the prompt for one question.",
+                  "support_quote": "RAG does not retrain the LLM. It only changes the prompt for one question.",
+                  "supported_by_lesson": true
+                },
+                {
+                  "answer": "A college scholarship notice is one real-life example where RAG is useful.",
+                  "correct": false,
+                  "question": "Give one real-life example where RAG is useful.",
+                  "question_id": "Q6",
+                  "grader_reason": "This does not clearly give a full real-life example of an AI using retrieved documents; it names a document rather than a use case or situation.",
+                  "support_quote": "For example, a college can add a new exam notice. Then students can ask about it.",
+                  "supported_by_lesson": true
+                }
+              ]
+            },
+            "evidence_verified": true,
+            "votes": [],
+            "latency_ms": 13577
+          },
+          {
+            "check_id": "FLOW-1",
+            "dimension": "flow",
+            "title": "Sections in teaching order",
+            "method": "deterministic",
+            "severity": "critical",
+            "verdict": "PASS",
+            "reasoning": "All required sections are present in teaching order: hook -> what -> why -> how -> example -> misconceptions -> summary.",
+            "evidence": [
+              "hook: Hook: A Direct First Picture",
+              "what: What RAG Is",
+              "why: Why RAG Matters",
+              "how: How RAG Works Step by Step",
+              "example: Worked Example: College Scholarship Notice"
+            ],
+            "fix_instruction": "",
+            "details": {
+              "missing": [],
+              "sections": [
+                "hook",
+                "what",
+                "why",
+                "how",
+                "example",
+                "misconceptions",
+                "summary"
+              ]
+            },
+            "evidence_verified": null,
+            "votes": [],
+            "latency_ms": 31
+          },
+          {
+            "check_id": "FLOW-2",
+            "dimension": "flow",
+            "title": "Builds step by step",
+            "method": "llm_judge",
+            "severity": "major",
+            "verdict": "PASS",
+            "reasoning": "The lesson introduces key terms before using them: it defines RAG parts, then explains the five steps, and only later uses those terms in the example and misconceptions. The section order is easy to follow because it uses clear transitions like “First” and “Step 1,” so the learner can see why each section comes next. The summary only repeats ideas already taught and does not add new terms or concepts.",
+            "evidence": [
+              "First, RAG helps with new information.",
+              "Step 1 is prepare the knowledge.",
+              "RAG means retrieve, augment, and generate."
+            ],
+            "fix_instruction": "",
+            "details": {
+              "votes": 1,
+              "decided_by": "gpt-5.4-mini"
+            },
+            "evidence_verified": true,
+            "votes": [],
+            "latency_ms": 9247
+          },
+          {
+            "check_id": "FLOW-3",
+            "dimension": "flow",
+            "title": "Valid quiz",
+            "method": "deterministic",
+            "severity": "major",
+            "verdict": "PASS",
+            "reasoning": "Quiz has 5 well-formed multiple-choice questions.",
+            "evidence": [],
+            "fix_instruction": "",
+            "details": {
+              "questions": 5
+            },
+            "evidence_verified": null,
+            "votes": [],
+            "latency_ms": 31
+          },
+          {
+            "check_id": "FLOW-4",
+            "dimension": "flow",
+            "title": "Quiz tests what was taught",
+            "method": "llm_judge",
+            "severity": "major",
+            "verdict": "PASS",
+            "reasoning": "The quiz answers are all taught in the lesson body. Each marked correct option matches the lesson’s explanations: RAG adds outside information to the prompt, the five-step order is given explicitly, updated knowledge bases help with new notices, and RAG differs from fine-tuning because it does not change model weights. No marked answer conflicts with the lesson, and no other option is equally correct.",
+            "evidence": [
+              "\"RAG means retrieve, augment, and generate.\"",
+              "\"Its five steps are prepare, index, retrieve, augment, and generate.\"",
+              "\"RAG does not retrain the LLM. It does not permanently change model weights.\""
+            ],
+            "fix_instruction": "",
+            "details": {
+              "votes": 1,
+              "decided_by": "gpt-5.4-mini"
+            },
+            "evidence_verified": true,
+            "votes": [],
+            "latency_ms": 10051
+          }
+        ],
+        "failed_check_ids": [],
+        "error_check_ids": [],
+        "summary": "PASS - all 23 checks passed",
+        "usage": {
+          "llm_calls": 17,
+          "input_tokens": 66714,
+          "cached_input_tokens": 23296,
+          "output_tokens": 6957,
+          "reasoning_tokens": 1289,
+          "cost_usd": 0.065615,
+          "by_model": {
+            "gpt-5.4-mini": {
+              "llm_calls": 17,
+              "input_tokens": 66714,
+              "cached_input_tokens": 23296,
+              "output_tokens": 6957,
+              "reasoning_tokens": 1289,
+              "cost_usd": 0.065615
+            }
+          }
+        },
+        "duration_ms": 21661
+      },
+      "revision_notes": [
+        {
+          "check_id": "LANG-4",
+          "change": "I rewrote the hook section with direct, literal RAG roles and steps. I also removed the open-book exam heading and removed extra 'like' wording in the example and summary."
+        },
+        {
+          "check_id": "JAR-3",
+          "change": "I expanded LLM in the learning objective as Large Language Model (LLM) before using the acronym."
+        }
+      ],
+      "diff": [
+        {
+          "kind": "hook",
+          "heading": "Hook: A Direct First Picture",
+          "change": "modified",
+          "words_before": 144,
+          "words_after": 112
+        },
+        {
+          "kind": "what",
+          "heading": "What RAG Is",
+          "change": "modified",
+          "words_before": 176,
+          "words_after": 187
+        },
+        {
+          "kind": "why",
+          "heading": "Why RAG Matters",
+          "change": "unchanged",
+          "words_before": 245,
+          "words_after": 245
+        },
+        {
+          "kind": "how",
+          "heading": "How RAG Works Step by Step",
+          "change": "unchanged",
+          "words_before": 403,
+          "words_after": 403
+        },
+        {
+          "kind": "example",
+          "heading": "Worked Example: College Scholarship Notice",
+          "change": "modified",
+          "words_before": 275,
+          "words_after": 276
+        },
+        {
+          "kind": "misconceptions",
+          "heading": "Common Misconceptions and Limits",
+          "change": "unchanged",
+          "words_before": 144,
+          "words_after": 144
+        },
+        {
+          "kind": "summary",
+          "heading": "Summary",
+          "change": "modified",
+          "words_before": 88,
+          "words_after": 84
+        }
+      ],
+      "strategy_reason": "patch: 2 of 23 checks failed (<= 6), so only the failing parts were edited and passing parts were kept",
+      "generation_usage": {
+        "llm_calls": 1,
+        "input_tokens": 10121,
+        "cached_input_tokens": 0,
+        "output_tokens": 4172,
+        "reasoning_tokens": 512,
+        "cost_usd": 0.175765,
+        "by_model": {
+          "gpt-5.5": {
+            "llm_calls": 1,
+            "input_tokens": 10121,
+            "cached_input_tokens": 0,
+            "output_tokens": 4172,
+            "reasoning_tokens": 512,
+            "cost_usd": 0.175765
+          }
+        }
+      },
+      "created_at": "2026-10-14T05:52:38.067534Z"
+    }
+  ],
+  "trace_url": "http://localhost:3000/project/lessongen/traces/fbf913c7ff2e70b9d9821c05d72ef88f"
+}

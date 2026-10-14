@@ -81,7 +81,7 @@ RAG works in two parts. First, we prepare the documents. Then, we answer questio
 
 **Part B: Answer a question (done every time someone asks)**
 
-4. **Retrieve.** The user's question is also turned into an embedding. The system then finds the chunks whose meaning is closest to the question. This is called **similarity search** (मिलती-जुलती चीज़ खोजना). Usually it picks the top 3 to 5 chunks.
+4. **Retrieve.** The user's question is also turned into an embedding. The system then finds the chunks whose meaning is closest to the question. This is called **similarity search** (मिलती-जुलती चीज़ खोजना). Usually it picks between 3 and 10 of the best-matching chunks.
 5. **Augment.** The system puts these chunks into the prompt, next to the question. It also adds an instruction like "Answer only from this information."
 6. **Generate.** The LLM reads this prompt. Then it writes the answer using the chunks. It can also say which document it used.
 
