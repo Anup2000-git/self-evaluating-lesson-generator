@@ -76,8 +76,10 @@ ROLE_DEFAULTS: dict[LLMRole, RoleDefault] = {
     ),
     LLMRole.FACT_CHECKER: RoleDefault(
         tier="fast",
-        reasoning_effort="medium",
-        max_output_tokens=12000,
+        # Claim extraction reads the whole lesson; at "medium" the model can spend the entire
+        # output budget on reasoning (seen live), which errors the check. Low effort + headroom.
+        reasoning_effort="low",
+        max_output_tokens=24000,
         purpose="ReAct agent that verifies every claim against the knowledge base.",
     ),
     LLMRole.LEARNER: RoleDefault(

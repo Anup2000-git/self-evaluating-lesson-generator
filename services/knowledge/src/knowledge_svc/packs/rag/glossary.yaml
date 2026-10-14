@@ -33,7 +33,7 @@
 
 - term: Prompt
   simple_meaning: The message, with a question and instructions, that we give to an AI.
-  translations: {hindi: "निर्देश (AI को दिया गया सवाल और निर्देश)"}
+  translations: {hindi: "निर्देश (मॉडल को दिया गया सवाल और निर्देश)"}
 
 - term: Knowledge base
   simple_meaning: A collection of documents that a system can search.
@@ -99,7 +99,7 @@
 - term: Index
   aliases: [indexing]
   simple_meaning: An organised list that makes searching fast, like the index at the back of a book.
-  translations: {hindi: "अनुक्रमणिका (खोजने के लिए सूची)"}
+  translations: {hindi: "खोजने के लिए बनी सूची"}
 
 - term: Query
   simple_meaning: A question or search request given to a system.
@@ -116,7 +116,7 @@
 
 - term: Top-k
   simple_meaning: The k best-matching chunks that the retriever returns, for example the top 3.
-  translations: {hindi: "सबसे अच्छे k नतीजे"}
+  translations: {hindi: "सबसे मिलते-जुलते कुछ नतीजे"}
 
 - term: Source
   aliases: [citation]
